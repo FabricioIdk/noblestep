@@ -1,0 +1,45 @@
+<%- include('../layouts/header') %>
+
+<main>
+<p><small>Registro de acciones administrativas (últimas 100). Solo lectura.</small></p>
+
+  <form action="/admin/auditoria" method="GET">
+    <label>Filtrar por entidad:</label>
+    <select name="entidad" data-autoenviar>
+      <option value="">Todas</option>
+      <option value="pedidos" <%= filtroEntidad === 'pedidos' ? 'selected' : '' %>>Pedidos</option>
+      <option value="productos" <%= filtroEntidad === 'productos' ? 'selected' : '' %>>Productos</option>
+      <option value="ordenes_compra" <%= filtroEntidad === 'ordenes_compra' ? 'selected' : '' %>>Órdenes de compra</option>
+      <option value="variantes_producto" <%= filtroEntidad === 'variantes_producto' ? 'selected' : '' %>>Inventario</option>
+      <option value="configuracion_sistema" <%= filtroEntidad === 'configuracion_sistema' ? 'selected' : '' %>>Configuración</option>
+    </select>
+  </form>
+
+  <br>
+  <% if (registros.length === 0) { %>
+    <p>No hay registros de auditoría todavía.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>Detalle</th></tr>
+      </thead>
+      <tbody>
+        <% registros.forEach(function(r) { %>
+          <tr>
+            <td><%= new Date(r.fecha).toLocaleString('es-PE') %></td>
+            <td><%= r.Usuario ? (r.Usuario.nombre + ' ' + r.Usuario.apellido) : 'Sistema' %></td>
+            <td><%= r.accion %></td>
+            <td><%= r.entidad_afectada %><% if (r.entidad_id) { %> #<%= r.entidad_id %><% } %></td>
+            <td><%= r.detalle || '—' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <br>
+  <button data-href="/admin/configuracion">Ver configuración</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

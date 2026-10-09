@@ -1,0 +1,54 @@
+<%- include('../layouts/header') %>
+
+<main>
+<table border="1" cellpadding="8">
+    <thead>
+      <tr><th>N° Orden</th><th>Proveedor</th><th>Tienda destino</th><th>Fecha</th><th>Estado</th><th>Total</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% ordenes.forEach(function(o) { %>
+        <tr>
+          <td><%= o.numero %></td>
+          <td><%= o.Proveedor ? o.Proveedor.nombre : '—' %></td>
+          <td><%= o.Tienda ? o.Tienda.nombre : '—' %></td>
+          <td><%= new Date(o.fecha).toLocaleDateString('es-PE') %></td>
+          <td>
+            <span class="badge <%= o.estado === 'recibida' ? 'badge-exito' : (o.estado === 'cancelada' ? 'badge-alerta' : 'badge-negro') %>">
+              <%= o.estado %>
+            </span>
+          </td>
+          <td>S/ <%= Number(o.total).toFixed(2) %></td>
+          <td><button data-href="/admin/compras/<%= o.id %>">Ver / editar</button></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Nueva orden de compra</h2>
+  <% if (proveedores.length === 0) { %>
+    <p>Primero debes <a href="/admin/proveedores">registrar un proveedor</a>.</p>
+  <% } else { %>
+    <form action="/admin/compras" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Proveedor:</label>
+      <select name="proveedor_id" required>
+        <% proveedores.forEach(function(p) { %>
+          <option value="<%= p.id %>"><%= p.nombre %></option>
+        <% }); %>
+      </select>
+      <label>Tienda destino:</label>
+      <select name="tienda_destino_id" required>
+        <% tiendas.forEach(function(t) { %>
+          <option value="<%= t.id %>"><%= t.nombre %> <%= t.tipo === 'almacen_online' ? '(online)' : '' %></option>
+        <% }); %>
+      </select>
+      <button type="submit">Crear orden</button>
+    </form>
+  <% } %>
+
+  <br>
+  <button data-href="/admin/proveedores">Gestionar proveedores</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

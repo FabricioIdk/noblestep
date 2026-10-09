@@ -1,0 +1,47 @@
+<%- include('../layouts/header') %>
+
+<main>
+<form action="/admin/envios" method="GET">
+    <label>Filtrar por estado:</label>
+    <select name="estado" data-autoenviar>
+      <option value="">Todos</option>
+      <% estados.forEach(function(e) { %>
+        <option value="<%= e %>" <%= filtroEstado === e ? 'selected' : '' %>><%= e %></option>
+      <% }); %>
+    </select>
+  </form>
+
+  <br>
+  <% if (envios.length === 0) { %>
+    <p>No hay envíos<%= filtroEstado ? ' con estado "' + filtroEstado + '"' : '' %>.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr><th>Pedido</th><th>Cliente</th><th>Transportista</th><th>Zona</th><th class="precio">Costo</th><th>Seguimiento</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% envios.forEach(function(e) { %>
+          <tr>
+            <td><%= e.Pedido.numero_pedido %></td>
+            <td><%= e.Pedido.Usuario ? (e.Pedido.Usuario.nombre + ' ' + e.Pedido.Usuario.apellido) : '—' %></td>
+            <td><%= e.empresa_transporte || '—' %></td>
+            <td><%= e.zona || '—' %></td>
+            <td class="precio">S/ <%= e.costo_envio %></td>
+            <td><%= e.numero_seguimiento || '—' %></td>
+            <td>
+              <span class="badge <%= e.estado === 'entregado' ? 'badge-exito' : (e.estado === 'en_camino' ? 'badge-negro' : 'badge-gris') %>">
+                <%= e.estado %>
+              </span>
+            </td>
+            <td><button data-href="/admin/pedidos/<%= e.Pedido.id %>">Editar</button></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <br>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

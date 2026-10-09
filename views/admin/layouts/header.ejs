@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titulo %> - Noble Step Admin</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fonts/uicons/uicons-regular-rounded.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <a href="/admin">
+          <img src="/img/home/noblestep-icono-N.png" alt="" width="26" height="26">
+          <span class="admin-logo-texto">NOBLE STEP<span class="admin-logo-subtitulo">Admin</span></span>
+        </a>
+      </div>
+
+      <nav class="admin-nav" id="adminNav">
+        <div class="admin-nav-group">
+          <h4>Catálogo</h4>
+          <a href="/admin/productos" data-path="/admin/productos">Productos</a>
+          <a href="/admin/categorias" data-path="/admin/categorias">Categorías</a>
+          <a href="/admin/inventario" data-path="/admin/inventario">Inventario</a>
+          <a href="/admin/tiendas" data-path="/admin/tiendas">Tiendas</a>
+        </div>
+        <div class="admin-nav-group">
+          <h4>Ventas</h4>
+          <a href="/admin/pedidos" data-path="/admin/pedidos">Pedidos</a>
+          <a href="/admin/pagos" data-path="/admin/pagos">Pagos</a>
+          <a href="/admin/envios" data-path="/admin/envios">Envíos</a>
+        </div>
+        <div class="admin-nav-group">
+          <h4>Compras</h4>
+          <a href="/admin/proveedores" data-path="/admin/proveedores">Proveedores</a>
+          <a href="/admin/compras" data-path="/admin/compras">Órdenes de compra</a>
+        </div>
+        <div class="admin-nav-group">
+          <h4>Marketing</h4>
+          <a href="/admin/cupones" data-path="/admin/cupones">Cupones</a>
+        </div>
+        <div class="admin-nav-group">
+          <h4>Sistema</h4>
+          <a href="/admin/reportes" data-path="/admin/reportes">Reportes</a>
+          <a href="/admin/auditoria" data-path="/admin/auditoria">Auditoría</a>
+          <a href="/admin/configuracion" data-path="/admin/configuracion">Configuración</a>
+        </div>
+      </nav>
+
+      <div class="admin-user">
+        <div class="admin-user-info">
+          <strong><%= usuarioSesion.nombre %></strong>
+          <small>Administrador</small>
+        </div>
+        <div class="admin-user-actions">
+          <a href="/">Ver tienda</a>
+          <form action="/auth/logout" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit">Salir</button>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1><%= titulo %></h1>
+      </header>
+      <main class="admin-content">

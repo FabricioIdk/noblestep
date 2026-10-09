@@ -1,0 +1,75 @@
+<main>
+  <div class="auth-tarjeta">
+    <input type="radio" name="auth-tab" id="tab-login" class="auth-tab-radio" <%= pestanaActiva === 'login' ? 'checked' : '' %>>
+    <input type="radio" name="auth-tab" id="tab-registro" class="auth-tab-radio" <%= pestanaActiva === 'registro' ? 'checked' : '' %>>
+
+    <div class="auth-logo">N</div>
+    <div class="auth-cabecera">
+      <h1>Bienvenido a Noble Step</h1>
+      <p>Inicia sesión o crea tu cuenta</p>
+    </div>
+
+    <div class="auth-tabs">
+      <label for="tab-login">Iniciar sesión</label>
+      <label for="tab-registro">Crear cuenta</label>
+    </div>
+
+    <div class="auth-panel auth-panel-login">
+      <% if (errorLogin) { %>
+        <div class="auth-error">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+          <%= errorLogin %>
+        </div>
+      <% } %>
+      <form action="/auth/login" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="auth-campo">
+          <label for="login-email">Correo electrónico</label>
+          <input type="email" name="email" id="login-email" required>
+        </div>
+        <div class="auth-campo">
+          <label for="login-password">Contraseña</label>
+          <input type="password" name="password" id="login-password" required>
+        </div>
+        <p class="auth-olvide"><a href="/auth/olvide-password">¿Olvidaste tu contraseña?</a></p>
+        <button type="submit" class="auth-submit">Ingresar</button>
+      </form>
+    </div>
+
+    <div class="auth-panel auth-panel-registro">
+      <% if (errorRegistro) { %>
+        <div class="auth-error">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+          <%= errorRegistro %>
+        </div>
+      <% } %>
+      <form action="/auth/registro" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="auth-campo auth-fila-dos">
+          <div>
+            <label for="reg-nombre">Nombre</label>
+            <input type="text" name="nombre" id="reg-nombre" value="<%= valores.nombre || '' %>" required>
+          </div>
+          <div>
+            <label for="reg-apellido">Apellido</label>
+            <input type="text" name="apellido" id="reg-apellido" value="<%= valores.apellido || '' %>" required>
+          </div>
+        </div>
+        <div class="auth-campo">
+          <label for="reg-email">Correo electrónico</label>
+          <input type="email" name="email" id="reg-email" value="<%= valores.email || '' %>" required>
+        </div>
+        <div class="auth-campo">
+          <label for="reg-telefono">Teléfono (opcional)</label>
+          <input type="text" name="telefono" id="reg-telefono" value="<%= valores.telefono || '' %>">
+        </div>
+        <div class="auth-campo">
+          <label for="reg-password">Contraseña</label>
+          <input type="password" name="password" id="reg-password" required minlength="8">
+          <p class="auth-ayuda">Mínimo 8 caracteres, con letras y números.</p>
+        </div>
+        <button type="submit" class="auth-submit">Crear cuenta</button>
+      </form>
+    </div>
+  </div>
+</main>

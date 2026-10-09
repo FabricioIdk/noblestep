@@ -1,0 +1,158 @@
+<%- include('layouts/header') %>
+<%
+  var tablas = [
+    { id: 'hombre', nombre: 'Hombre', columna: 'US', filas: [
+      ['39', '6.5', 24.5], ['40', '7', 25.0], ['41', '8', 25.5], ['42', '8.5', 26.5], ['43', '9.5', 27.5], ['44', '10', 28.0]
+    ] },
+    { id: 'mujer', nombre: 'Mujer', columna: 'US', filas: [
+      ['35', '5', 22.0], ['36', '6', 22.5], ['37', '6.5', 23.5], ['38', '7.5', 24.0], ['39', '8', 24.5], ['40', '9', 25.5]
+    ] },
+    { id: 'nino', nombre: 'Niños', columna: 'Edad aprox.', filas: [
+      ['28', '4-5 años', 17.0], ['30', '5-6 años', 18.5], ['32', '7-8 años', 19.5], ['34', '9-10 años', 21.0]
+    ] }
+  ];
+%>
+
+<main class="guia">
+  <span class="inicio-etiqueta">Ayuda</span>
+  <h1 class="inicio-titulo guia-titulo">Guía de tallas</h1>
+  <p class="guia-intro">Encuentra tu talla en segundos. Mide tu pie, ingresa los centímetros y te decimos qué talla elegir.</p>
+
+  <section class="guia-calculadora" aria-label="Calcular mi talla">
+    <div class="guia-calculadora-campos">
+      <div>
+        <span class="guia-campo-titulo">Para quién</span>
+        <div class="guia-pestanas" role="tablist">
+          <% tablas.forEach(function(t, i) { %>
+            <button type="button" role="tab" class="guia-pestana<%= i === 0 ? ' activa' : '' %>" data-genero="<%= t.id %>" aria-selected="<%= i === 0 %>"><%= t.nombre %></button>
+          <% }); %>
+        </div>
+      </div>
+      <label class="guia-campo">
+        <span class="guia-campo-titulo">Largo de tu pie</span>
+        <span class="guia-entrada">
+          <input type="number" id="largoPie" min="10" max="35" step="0.1" placeholder="25.5" inputmode="decimal">
+          <span>cm</span>
+        </span>
+      </label>
+    </div>
+    <div class="guia-resultado" id="resultadoTalla" aria-live="polite">
+      <span class="guia-resultado-etiqueta">Tu talla recomendada</span>
+      <strong id="resultadoValor">—</strong>
+      <span class="guia-resultado-detalle" id="resultadoDetalle">Ingresa la medida de tu pie.</span>
+    </div>
+  </section>
+
+  <section class="guia-tablas" aria-label="Tablas de equivalencias">
+    <% tablas.forEach(function(t, i) { %>
+      <div class="guia-panel" data-panel="<%= t.id %>" role="tabpanel"<%= i === 0 ? '' : ' hidden' %>>
+        <h2 class="inicio-titulo guia-subtitulo">Tallas de <%= t.nombre.toLowerCase() %></h2>
+        <div class="guia-tabla">
+          <div class="guia-fila guia-fila-cabecera">
+            <span>EUR</span><span><%= t.columna %></span><span>Largo del pie</span>
+          </div>
+          <% t.filas.forEach(function(f) { %>
+            <div class="guia-fila" data-eur="<%= f[0] %>" data-cm="<%= f[2] %>">
+              <span><strong><%= f[0] %></strong></span><span><%= f[1] %></span><span><%= f[2].toFixed(1) %> cm</span>
+            </div>
+          <% }); %>
+        </div>
+        <a href="/productos?genero=<%= t.id %>" class="inicio-boton guia-comprar">Ver zapatillas de <%= t.nombre.toLowerCase() %></a>
+      </div>
+    <% }); %>
+  </section>
+
+  <section class="guia-seccion" aria-label="Cómo medir tu pie">
+    <h2 class="inicio-titulo guia-subtitulo">Cómo medir tu pie en casa</h2>
+    <div class="inicio-pasos">
+      <div>
+        <div class="inicio-titulo inicio-paso-numero">01</div>
+        <div class="inicio-paso-titulo">Prepara una hoja</div>
+        <p>Coloca una hoja de papel en el piso, pegada a una pared.</p>
+      </div>
+      <div>
+        <div class="inicio-titulo inicio-paso-numero">02</div>
+        <div class="inicio-paso-titulo">Marca tu pie</div>
+        <p>Apoya el talón contra la pared y marca dónde termina tu dedo más largo.</p>
+      </div>
+      <div>
+        <div class="inicio-titulo inicio-paso-numero">03</div>
+        <div class="inicio-paso-titulo">Mide y compara</div>
+        <p>Mide la distancia en centímetros e ingrésala arriba para ver tu talla.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="guia-consejos" aria-label="Consejos">
+    <div>
+      <i class="fi fi-rr-arrow-up"></i>
+      <strong>¿Entre dos tallas?</strong>
+      <p>Elige la talla superior para que tus dedos no queden apretados.</p>
+    </div>
+    <div>
+      <i class="fi fi-rr-clock"></i>
+      <strong>Mide por la tarde</strong>
+      <p>El pie se expande durante el día; a esa hora la medida es más real.</p>
+    </div>
+    <div>
+      <i class="fi fi-rr-ruler-horizontal"></i>
+      <strong>Mide ambos pies</strong>
+      <p>Es normal que uno sea un poco más grande. Usa la medida mayor.</p>
+    </div>
+  </section>
+</main>
+
+<script nonce="<%= nonce %>">
+  (function () {
+    var pestanas = document.querySelectorAll('.guia-pestana');
+    var paneles = document.querySelectorAll('.guia-panel');
+    var entrada = document.getElementById('largoPie');
+    var valor = document.getElementById('resultadoValor');
+    var detalle = document.getElementById('resultadoDetalle');
+    var generoActual = 'hombre';
+
+    function panelActual() {
+      return document.querySelector('.guia-panel[data-panel="' + generoActual + '"]');
+    }
+
+    function calcular() {
+      document.querySelectorAll('.guia-fila.resaltada').forEach(function (f) { f.classList.remove('resaltada'); });
+      var cm = parseFloat(entrada.value);
+      if (!cm || cm < 10 || cm > 35) {
+        valor.textContent = '—';
+        detalle.textContent = entrada.value ? 'Ingresa una medida entre 10 y 35 cm.' : 'Ingresa la medida de tu pie.';
+        return;
+      }
+      var filas = Array.prototype.slice.call(panelActual().querySelectorAll('.guia-fila[data-cm]'));
+      var elegida = filas.find(function (f) { return parseFloat(f.getAttribute('data-cm')) >= cm; });
+      if (!elegida) {
+        elegida = filas[filas.length - 1];
+        detalle.textContent = 'Tu medida supera nuestra tabla; te sugerimos la talla más grande disponible.';
+      } else if (filas[0] === elegida && cm < parseFloat(elegida.getAttribute('data-cm')) - 1) {
+        detalle.textContent = 'Tu medida es menor a nuestra tabla; te sugerimos la talla más pequeña disponible.';
+      } else {
+        var celdas = elegida.querySelectorAll('span');
+        detalle.textContent = (generoActual === 'nino' ? celdas[1].textContent : 'US ' + celdas[1].textContent) + ' · pie de hasta ' + celdas[2].textContent;
+      }
+      valor.textContent = 'EUR ' + elegida.getAttribute('data-eur');
+      elegida.classList.add('resaltada');
+    }
+
+    pestanas.forEach(function (boton) {
+      boton.addEventListener('click', function () {
+        generoActual = boton.getAttribute('data-genero');
+        pestanas.forEach(function (b) {
+          var activa = b === boton;
+          b.classList.toggle('activa', activa);
+          b.setAttribute('aria-selected', activa);
+        });
+        paneles.forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== generoActual; });
+        calcular();
+      });
+    });
+
+    entrada.addEventListener('input', calcular);
+  })();
+</script>
+
+<%- include('layouts/footer') %>

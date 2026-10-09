@@ -1,0 +1,116 @@
+<%- include('../layouts/header') %>
+
+<div class="admin-panel">
+  <p><strong>Cliente:</strong> <%= pedido.Usuario.nombre %> <%= pedido.Usuario.apellido %> (<%= pedido.Usuario.email %>)</p>
+  <p><strong>Fecha:</strong> <%= new Date(pedido.fecha_pedido).toLocaleString('es-PE') %></p>
+  <p><strong>Modalidad:</strong>
+    <%= pedido.tipo_entrega === 'recojo_tienda' ? 'Recojo en tienda — ' + pedido.Tienda.nombre : 'Envío a domicilio (Almacén Central)' %>
+  </p>
+  <p><strong>Dirección de entrega:</strong> <%= pedido.Direccion.calle %>, <%= pedido.Direccion.distrito %>, <%= pedido.Direccion.ciudad %></p>
+  <% if (pedido.Cupon) { %>
+    <p><strong>Cupón aplicado:</strong> <%= pedido.Cupon.codigo %></p>
+  <% } %>
+</div>
+
+<h2>Productos</h2>
+<table border="1" cellpadding="6">
+  <thead>
+    <tr><th>Producto</th><th>Talla/Color</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr>
+  </thead>
+  <tbody>
+    <% lineas.forEach(function(l) { %>
+      <tr>
+        <td><%= l.producto ? l.producto.nombre : '—' %></td>
+        <td><%= l.VarianteProducto.talla %> / <%= l.VarianteProducto.color %></td>
+        <td><%= l.cantidad %></td>
+        <td class="precio">S/ <%= l.precio_unitario %></td>
+        <td class="precio">S/ <%= l.subtotal %></td>
+      </tr>
+    <% }); %>
+  </tbody>
+</table>
+
+<div class="admin-panel" style="text-align:right;">
+  <p style="margin:0.2rem 0;">Subtotal: <span class="precio">S/ <%= pedido.subtotal %></span></p>
+  <p style="margin:0.2rem 0;">IGV: <span class="precio">S/ <%= pedido.igv %></span></p>
+  <p style="margin:0.4rem 0 0; font-size:1.2rem;"><strong>Total: <span class="precio">S/ <%= pedido.total %></span></strong></p>
+</div>
+
+<% if (pedido.Pagos && pedido.Pagos.length > 0) { %>
+  <h2>Historial de pagos</h2>
+  <table border="1" cellpadding="6">
+    <thead><tr><th>Método</th><th>Estado</th><th>Referencia</th></tr></thead>
+    <tbody>
+      <% pedido.Pagos.forEach(function(pg) { %>
+        <tr>
+          <td><%= pg.metodo_pago %></td>
+          <td>
+            <span class="badge <%= pg.estado_pago === 'aprobado' ? 'badge-exito' : (pg.estado_pago === 'rechazado' ? 'badge-alerta' : 'badge-gris') %>">
+              <%= pg.estado_pago %>
+            </span>
+          </td>
+          <td><%= pg.referencia_transaccion || '—' %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } %>
+
+<h2>Estado del pedido</h2>
+<div class="admin-panel">
+  <p>
+    Estado actual:
+    <span class="badge <%= pedido.estado === 'entregado' ? 'badge-exito' : (pedido.estado === 'cancelado' ? 'badge-alerta' : 'badge-negro') %>">
+      <%= pedido.estado %>
+    </span>
+  </p>
+  <form action="/admin/pedidos/<%= pedido.id %>/estado" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <select name="estado">
+      <% estados.forEach(function(e) { %>
+        <option value="<%= e %>" <%= pedido.estado === e ? 'selected' : '' %>><%= e %></option>
+      <% }); %>
+    </select>
+    <button type="submit">Actualizar estado</button>
+  </form>
+  <p><small>Nota: cambiar el estado a "cancelado" restituye automáticamente el stock reservado de cada producto.</small></p>
+</div>
+
+<h2>Envío</h2>
+<div class="admin-panel">
+  <% if (pedido.Envio) { %>
+    <p>
+      Empresa: <strong><%= pedido.Envio.empresa_transporte || '—' %></strong> ·
+      Zona: <%= pedido.Envio.zona || '—' %> ·
+      Costo: <span class="precio">S/ <%= pedido.Envio.costo_envio %></span> ·
+      Seguimiento: <%= pedido.Envio.numero_seguimiento || '—' %> ·
+      Estado:
+      <span class="badge <%= pedido.Envio.estado === 'entregado' ? 'badge-exito' : (pedido.Envio.estado === 'en_camino' ? 'badge-negro' : 'badge-gris') %>">
+        <%= pedido.Envio.estado %>
+      </span>
+    </p>
+  <% } else { %>
+    <p>Este pedido todavía no tiene datos de envío registrados.</p>
+  <% } %>
+  <form action="/admin/pedidos/<%= pedido.id %>/envio" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="text" name="empresa_transporte" placeholder="Empresa de transporte"
+           value="<%= pedido.Envio ? pedido.Envio.empresa_transporte : '' %>">
+    <input type="text" name="zona" placeholder="Zona de entrega"
+           value="<%= pedido.Envio ? pedido.Envio.zona : '' %>">
+    <input type="number" step="0.01" name="costo_envio" placeholder="Costo de envío"
+           value="<%= pedido.Envio ? pedido.Envio.costo_envio : '0' %>" style="width:100px;">
+    <input type="text" name="numero_seguimiento" placeholder="N° de seguimiento"
+           value="<%= pedido.Envio ? pedido.Envio.numero_seguimiento : '' %>">
+    <select name="estado">
+      <option value="pendiente" <%= (pedido.Envio && pedido.Envio.estado === 'pendiente') ? 'selected' : '' %>>Pendiente</option>
+      <option value="en_camino" <%= (pedido.Envio && pedido.Envio.estado === 'en_camino') ? 'selected' : '' %>>En camino</option>
+      <option value="entregado" <%= (pedido.Envio && pedido.Envio.estado === 'entregado') ? 'selected' : '' %>>Entregado</option>
+    </select>
+    <button type="submit"><%= pedido.Envio ? 'Actualizar envío' : 'Registrar envío' %></button>
+  </form>
+</div>
+
+<button type="button" data-href="/admin/pedidos">Volver al listado</button>
+
+<%- include('../layouts/footer') %>

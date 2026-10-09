@@ -1,0 +1,97 @@
+<%- include('../layouts/header') %>
+
+<main>
+<form action="/admin/inventario" method="GET">
+    <label>Tienda / almacén:</label>
+    <select name="tienda_id" data-autoenviar>
+      <% tiendas.forEach(function(t) { %>
+        <option value="<%= t.id %>" <%= tiendaId === String(t.id) ? 'selected' : '' %>>
+          <%= t.nombre %> <%= t.tipo === 'almacen_online' ? '(online)' : '' %>
+        </option>
+      <% }); %>
+    </select>
+  </form>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <p style="color: red;">No se puede registrar esa salida: no hay suficiente stock en esta tienda.</p>
+  <% } %>
+
+  <h2>Stock actual en esta tienda</h2>
+  <% if (inventario.length === 0) { %>
+    <p>Esta tienda todavía no tiene stock registrado de ningún producto.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr><th>Producto</th><th>Talla</th><th>Color</th><th>SKU</th><th>Stock</th><th>Stock mínimo</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <% inventario.forEach(function(i) { %>
+          <tr style="<%= i.stock <= i.stock_minimo ? 'background-color:#ffe5e5;' : '' %>">
+            <td><%= i.producto ? i.producto.nombre : '—' %></td>
+            <td><%= i.VarianteProducto.talla %></td>
+            <td><%= i.VarianteProducto.color %></td>
+            <td><%= i.VarianteProducto.sku %></td>
+            <td><%= i.stock %></td>
+            <td><%= i.stock_minimo %></td>
+            <td><%= i.stock <= i.stock_minimo ? '⚠️ Stock bajo' : 'OK' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <h2>Registrar movimiento en esta tienda</h2>
+  <form action="/admin/inventario/movimiento" method="POST">
+    <input type="hidden" name="tienda_id" value="<%= tiendaId %>">
+    <label>Variante:</label>
+    <select name="variante_id" required>
+      <% variantes.forEach(function(v) { %>
+        <option value="<%= v.id %>"><%= v.producto ? v.producto.nombre : '—' %> — Talla <%= v.talla %> / <%= v.color %></option>
+      <% }); %>
+    </select>
+    <br><br>
+    <label>Tipo de movimiento:</label>
+    <select name="tipo" required>
+      <option value="entrada">Entrada (suma al stock)</option>
+      <option value="salida">Salida (resta del stock)</option>
+      <option value="ajuste">Ajuste (define el stock exacto tras un conteo físico)</option>
+    </select>
+    <br><br>
+    <label>Cantidad <small>(para "ajuste", es el nuevo valor total de stock)</small>:</label>
+    <input type="number" name="cantidad" min="0" required>
+    <br><br>
+    <label>Motivo:</label>
+    <input type="text" name="motivo" placeholder="Ej. Recepción, transferencia, merma, conteo físico..." style="width:300px;">
+    <br><br>
+    <button type="submit">Registrar movimiento</button>
+  </form>
+
+  <h2>Últimos movimientos en esta tienda</h2>
+  <% if (movimientos.length === 0) { %>
+    <p>Todavía no hay movimientos registrados en esta tienda.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr><th>Fecha</th><th>Producto</th><th>Talla/Color</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr>
+      </thead>
+      <tbody>
+        <% movimientos.forEach(function(m) { %>
+          <tr>
+            <td><%= new Date(m.fecha).toLocaleString('es-PE') %></td>
+            <td><%= m.producto ? m.producto.nombre : '—' %></td>
+            <td><%= m.VarianteProducto.talla %> / <%= m.VarianteProducto.color %></td>
+            <td><%= m.tipo %></td>
+            <td><%= m.cantidad > 0 ? '+' + m.cantidad : m.cantidad %></td>
+            <td><%= m.motivo || '—' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <br>
+  <button data-href="/admin/tiendas">Gestionar tiendas</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

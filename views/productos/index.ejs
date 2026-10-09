@@ -1,0 +1,148 @@
+<%- include('../layouts/header') %>
+
+<main>
+  <%
+    var etiquetasGenero = { hombre: 'Hombre', mujer: 'Mujer', unisex: 'Unisex', nino: 'Niños' };
+    var tituloPagina = filtros.genero && etiquetasGenero[filtros.genero] ? etiquetasGenero[filtros.genero] : 'Catálogo';
+  %>
+  <p style="font-size:0.78rem; color:var(--tinta-suave); margin-bottom:0.2rem;">
+    <a href="/">Inicio</a> › <span>Productos</span>
+  </p>
+  <h1 style="margin-top:0;"><%= tituloPagina %></h1>
+  <p style="color:var(--tinta-suave); margin-top:-0.5rem;">
+    <% if (paginacion.totalProductos === 0) { %>
+      Mostrando 0 resultados
+    <% } else { %>
+      Mostrando <%= paginacion.desde %>–<%= paginacion.hasta %> de <%= paginacion.totalProductos %> resultado<%= paginacion.totalProductos === 1 ? '' : 's' %>
+    <% } %>
+  </p>
+
+  <form action="/productos" method="GET" class="barra-filtro-principal">
+    <% if (filtros.genero) { %><input type="hidden" name="genero" value="<%= filtros.genero %>"><% } %>
+    <input type="text" name="q" placeholder="Buscar por nombre..." value="<%= filtros.q %>">
+    <select name="orden" data-autoenviar>
+      <option value="" <%= filtros.orden === '' ? 'selected' : '' %>>Orden predeterminado</option>
+      <option value="popularidad" <%= filtros.orden === 'popularidad' ? 'selected' : '' %>>Ordenar por popularidad</option>
+      <option value="ultimos" <%= filtros.orden === 'ultimos' ? 'selected' : '' %>>Ordenar por los últimos</option>
+      <option value="precio_desc" <%= filtros.orden === 'precio_desc' ? 'selected' : '' %>>Precio: alto a bajo</option>
+      <option value="precio_asc" <%= filtros.orden === 'precio_asc' ? 'selected' : '' %>>Precio: bajo a alto</option>
+    </select>
+    <button type="submit">Buscar</button>
+  </form>
+
+  <details class="filtros-avanzados">
+    <summary>Más filtros</summary>
+    <form action="/productos" method="GET" class="filtros-catalogo">
+      <input type="hidden" name="q" value="<%= filtros.q %>">
+      <input type="hidden" name="orden" value="<%= filtros.orden %>">
+
+      <select name="categoria_id">
+        <option value="">Todas las categorías</option>
+        <% categorias.forEach(function(c) { %>
+          <option value="<%= c.id %>" <%= String(filtros.categoria_id) === String(c.id) ? 'selected' : '' %>><%= c.nombre %></option>
+        <% }); %>
+      </select>
+
+      <select name="genero">
+        <option value="">Todos los géneros</option>
+        <option value="hombre" <%= filtros.genero === 'hombre' ? 'selected' : '' %>>Hombre</option>
+        <option value="mujer" <%= filtros.genero === 'mujer' ? 'selected' : '' %>>Mujer</option>
+        <option value="unisex" <%= filtros.genero === 'unisex' ? 'selected' : '' %>>Unisex</option>
+        <option value="nino" <%= filtros.genero === 'nino' ? 'selected' : '' %>>Niño</option>
+      </select>
+
+      <input type="number" name="precio_min" placeholder="Precio mín." value="<%= filtros.precio_min %>" style="width:100px;">
+      <input type="number" name="precio_max" placeholder="Precio máx." value="<%= filtros.precio_max %>" style="width:100px;">
+      <label><input type="checkbox" name="oferta" value="1" <%= filtros.oferta === '1' ? 'checked' : '' %>> Solo ofertas</label>
+
+      <button type="submit">Aplicar</button>
+      <button type="button" data-href="/productos">Limpiar filtros</button>
+    </form>
+  </details>
+
+  <hr>
+
+  <% if (productos.length === 0) { %>
+    <p>No se encontraron productos con esos filtros.</p>
+  <% } else { %>
+    <div class="grilla-productos">
+      <% productos.forEach(function(producto) { %>
+        <div class="tarjeta-producto">
+          <% if (usuarioSesion) { %>
+            <form action="/favoritos/<%= producto.id %>/toggle" method="POST" class="tarjeta-producto-favorito" data-favorito>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="regresar_a" value="<%= paginaActualUrl %>">
+              <button type="submit" title="<%= idsFavoritos.includes(producto.id) ? 'Quitar de favoritos' : 'Agregar a favoritos' %>"
+                      class="<%= idsFavoritos.includes(producto.id) ? 'favorito-activo' : '' %>">
+                <i class="fi fi-rr-heart"></i>
+              </button>
+            </form>
+          <% } %>
+          <a href="/productos/<%= producto.id %>" style="text-decoration:none; color:inherit; display:block;">
+            <div class="tarjeta-producto-foto">
+              <% if (producto.imagen_principal) { %>
+                <img src="/img/productos/<%= producto.imagen_principal %>" alt="<%= producto.nombre %>">
+              <% } else { %>
+                <div class="tarjeta-producto-sin-foto">Sin imagen</div>
+              <% } %>
+              <% if (producto.enOferta) { %><span class="insignia-oferta tarjeta-producto-badge">Oferta</span><% } %>
+            </div>
+            <div class="tarjeta-producto-info">
+              <p class="tarjeta-producto-marca"><%= producto.marca || (producto.categoria ? producto.categoria.nombre : '') %></p>
+              <p class="tarjeta-producto-nombre"><%= producto.nombre %></p>
+              <p class="tarjeta-producto-precio">
+                <% if (producto.enOferta) { %>
+                  <span class="precio-tachado">S/ <%= producto.precio %></span>
+                  <span class="precio">S/ <%= producto.precioEfectivo.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="precio">S/ <%= producto.precio %></span>
+                <% } %>
+              </p>
+            </div>
+          </a>
+        </div>
+      <% }); %>
+    </div>
+
+    <% if (paginacion.total > 1) { %>
+      <%
+         
+         
+         
+         
+        function urlPagina(numeroPagina) {
+          var params = new URLSearchParams();
+          if (filtros.q) params.set('q', filtros.q);
+          if (filtros.categoria_id) params.set('categoria_id', filtros.categoria_id);
+          if (filtros.genero) params.set('genero', filtros.genero);
+          if (filtros.marca) params.set('marca', filtros.marca);
+          if (filtros.precio_min) params.set('precio_min', filtros.precio_min);
+          if (filtros.precio_max) params.set('precio_max', filtros.precio_max);
+          if (filtros.orden) params.set('orden', filtros.orden);
+          if (filtros.oferta) params.set('oferta', filtros.oferta);
+          params.set('pagina', numeroPagina);
+          return '/productos?' + params.toString();
+        }
+      %>
+      <div class="paginacion">
+        <% if (paginacion.actual > 1) { %>
+          <a href="<%= urlPagina(paginacion.actual - 1) %>">‹ Anterior</a>
+        <% } %>
+        <% for (let n = 1; n <= paginacion.total; n++) { %>
+          <% if (n === paginacion.actual) { %>
+            <span class="paginacion-actual"><%= n %></span>
+          <% } else { %>
+            <a href="<%= urlPagina(n) %>"><%= n %></a>
+          <% } %>
+        <% } %>
+        <% if (paginacion.actual < paginacion.total) { %>
+          <a href="<%= urlPagina(paginacion.actual + 1) %>">Siguiente ›</a>
+        <% } %>
+      </div>
+    <% } %>
+  <% } %>
+
+  <button data-href="/">Volver al inicio</button>
+</main>
+
+<%- include('../layouts/footer') %>

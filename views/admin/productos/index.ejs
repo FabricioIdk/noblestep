@@ -1,0 +1,57 @@
+<%- include('../layouts/header') %>
+
+<main>
+<button data-href="/admin/productos/nuevo">+ Nuevo producto</button>
+  <button data-href="/admin/categorias">Gestionar categorías</button>
+  <button data-href="/admin">Volver al panel</button>
+
+  <hr>
+
+  <% if (productos.length === 0) { %>
+    <p>Todavía no hay productos registrados.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Género</th>
+          <th>Precio</th>
+          <th>Variantes</th>
+          <th>Activo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% productos.forEach(function(p) { %>
+          <tr>
+            <td>
+              <% if (p.imagen_principal) { %>
+                <img src="/img/productos/<%= p.imagen_principal %>" alt="<%= p.nombre %>" width="60">
+              <% } else { %>
+                (sin imagen)
+              <% } %>
+            </td>
+            <td><%= p.nombre %></td>
+            <td><%= p.categoria ? p.categoria.nombre : '—' %></td>
+            <td><%= ({hombre:'Hombre',mujer:'Mujer',unisex:'Unisex',nino:'Niño'})[p.genero] || '—' %></td>
+            <td>S/ <%= p.precio %></td>
+            <td><%= p.variantes ? p.variantes.length : 0 %></td>
+            <td><span class="badge <%= p.activo ? 'badge-exito' : 'badge-gris' %>"><%= p.activo ? 'Sí' : 'No' %></span></td>
+            <td>
+              <button data-href="/admin/productos/<%= p.id %>/editar">Editar</button>
+              <form action="/admin/productos/<%= p.id %>/eliminar" method="POST" style="display:inline;"
+                    data-confirm="¿Eliminar este producto?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+</main>
+
+<%- include('../layouts/footer') %>

@@ -1,0 +1,71 @@
+<%- include('../layouts/header') %>
+
+<div class="admin-panel">
+  <p><strong>Proveedor:</strong> <%= orden.Proveedor.nombre %> (RUC <%= orden.Proveedor.ruc %>)</p>
+  <p><strong>Tienda destino:</strong> <%= orden.Tienda.nombre %></p>
+  <p>
+    <strong>Estado:</strong>
+    <span class="badge <%= orden.estado === 'recibida' ? 'badge-exito' : (orden.estado === 'cancelada' ? 'badge-alerta' : 'badge-negro') %>">
+      <%= orden.estado %>
+    </span>
+  </p>
+  <p><strong>Total:</strong> <span class="precio">S/ <%= Number(orden.total).toFixed(2) %></span></p>
+</div>
+
+<% if (error) { %>
+  <p style="color: red;"><%= error %></p>
+<% } %>
+
+<h2>Productos de la orden</h2>
+<% if (lineas.length === 0) { %>
+  <p>Todavía no se han agregado productos.</p>
+<% } else { %>
+  <table border="1" cellpadding="8">
+    <thead><tr><th>Producto</th><th>Talla/Color</th><th>Cantidad</th><th>Costo unitario</th><th>Subtotal</th></tr></thead>
+    <tbody>
+      <% lineas.forEach(function(l) { %>
+        <tr>
+          <td><%= l.producto ? l.producto.nombre : '—' %></td>
+          <td><%= l.VarianteProducto.talla %> / <%= l.VarianteProducto.color %></td>
+          <td><%= l.cantidad %></td>
+          <td class="precio">S/ <%= l.costo_unitario %></td>
+          <td class="precio">S/ <%= (l.cantidad * l.costo_unitario).toFixed(2) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } %>
+
+<% if (orden.estado === 'pendiente') { %>
+  <h2>Agregar producto a la orden</h2>
+  <div class="admin-panel">
+    <form action="/admin/compras/<%= orden.id %>/detalle" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <select name="variante_id" required>
+        <% variantes.forEach(function(v) { %>
+          <option value="<%= v.id %>"><%= v.producto.nombre %> — Talla <%= v.talla %> / <%= v.color %></option>
+        <% }); %>
+      </select>
+      <input type="number" name="cantidad" placeholder="Cantidad" min="1" required style="width:100px;">
+      <input type="number" step="0.01" name="costo_unitario" placeholder="Costo unitario" min="0" required style="width:120px;">
+      <button type="submit">Agregar</button>
+    </form>
+
+    <hr>
+
+    <form action="/admin/compras/<%= orden.id %>/recibir" method="POST" style="display:inline;"
+          data-confirm="¿Confirmar recepción? Esto sumará el stock automáticamente.">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit">Marcar como recibida (suma el stock)</button>
+    </form>
+    <form action="/admin/compras/<%= orden.id %>/cancelar" method="POST" style="display:inline;"
+          data-confirm="¿Cancelar esta orden?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit">Cancelar orden</button>
+    </form>
+  </div>
+<% } %>
+
+<button type="button" data-href="/admin/compras">Volver al listado</button>
+
+<%- include('../layouts/footer') %>

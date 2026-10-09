@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titulo %> - Noble Step</title>
+  <script nonce="<%= nonce %>">
+     
+     
+     
+     
+     
+     
+     
+    (function () {
+      var guardado = localStorage.getItem('noblestep-tema');
+      if (guardado === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fonts/uicons/uicons-regular-rounded.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="barra-anuncio">Recojo gratis en tienda · Paga con tarjeta, Yape o Plin</div>
+  <header>
+    <div class="barra barra-principal">
+      <div class="bloque-marca">
+                <button type="button" class="boton-menu-movil" data-toggle-menu aria-expanded="false" aria-controls="navCategorias buscadorHeader" title="Abrir menú">
+          <i class="fi fi-rr-menu-burger" data-icono-abrir></i>
+          <i class="fi fi-rr-cross-small" data-icono-cerrar style="display:none;"></i>
+        </button>
+        <a href="/" class="logo-link">
+                    <img src="/img/home/noblestep-logo-N.png" alt="Noble Step" class="logo-claro">
+          <img src="/img/home/noblestep-logo-N-blanco.png" alt="Noble Step" class="logo-oscuro">
+        </a>
+        <nav class="nav-categorias" id="navCategorias">
+          <a href="/productos">Nuevo</a>
+          <a href="/productos?genero=hombre">Hombre</a>
+          <a href="/productos?genero=mujer">Mujer</a>
+          <a href="/productos?genero=nino">Niños</a>
+          <a href="/productos?oferta=1" class="nav-ofertas">Ofertas</a>
+        </nav>
+      </div>
+
+      <div class="bloque-utilidades">
+        <form action="/productos" method="GET" class="buscador-header" id="buscadorHeader">
+          <input type="text" name="q" placeholder="¿Qué estás buscando?">
+          <button type="submit" title="Buscar"><i class="fi fi-rr-search"></i></button>
+        </form>
+
+        <span class="separador-utilidades"></span>
+
+        <% if (usuarioSesion) { %>
+          <div class="cuenta-dropdown">
+            <a href="/mi-cuenta" class="icono-nav" title="Mi cuenta">
+              <i class="fi fi-rr-user"></i>
+            </a>
+            <div class="menu-desplegable">
+              <p class="saludo">Hola, <%= usuarioSesion.nombre %></p>
+              <a href="/mi-cuenta">Mi cuenta</a>
+              <a href="/pedidos">Mis pedidos</a>
+              <a href="/notificaciones">Notificaciones<% if (notificacionesNoLeidas > 0) { %> (<%= notificacionesNoLeidas %>)<% } %></a>
+              <% if (usuarioSesion.rol === 'administrador') { %>
+                <a href="/admin">Panel admin</a>
+              <% } %>
+              <form action="/auth/logout" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit">Cerrar sesión</button>
+              </form>
+            </div>
+          </div>
+          <% if (notificacionesNoLeidas > 0) { %>
+            <a href="/notificaciones" class="icono-nav icono-badge" title="Notificaciones" data-badge="<%= notificacionesNoLeidas %>">
+              <i class="fi fi-rr-bell"></i>
+            </a>
+          <% } %>
+          <a href="/favoritos" class="icono-nav" title="Mis favoritos">
+            <i class="fi fi-rr-heart"></i>
+          </a>
+        <% } else { %>
+          <a href="/auth/login" class="icono-nav" title="Iniciar sesión / Registrarme">
+            <i class="fi fi-rr-user"></i>
+          </a>
+        <% } %>
+
+        <button type="button" class="icono-nav" id="botonTema" title="Cambiar a modo oscuro">
+          <i class="fi fi-rr-moon" id="iconoTema"></i>
+        </button>
+
+        <a href="/carrito" class="icono-nav" title="Carrito">
+          <i class="fi fi-rr-shopping-bag"></i>
+        </a>
+      </div>
+    </div>
+  </header>

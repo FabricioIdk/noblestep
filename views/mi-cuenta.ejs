@@ -1,0 +1,183 @@
+<%- include('layouts/header') %>
+
+<%
+  var nombreCompleto = (cuenta.nombre + ' ' + (cuenta.apellido || '')).trim();
+  var iniciales = ((cuenta.nombre || '?').charAt(0) + (cuenta.apellido ? cuenta.apellido.charAt(0) : '')).toUpperCase();
+  var miembroDesde = cuenta.createdAt ? new Date(cuenta.createdAt).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }) : '';
+  var etiquetaEstado = { pendiente: 'Por pagar', pagado: 'Pagado', enviado: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' };
+%>
+
+<main>
+    <section class="cuenta-cabecera">
+    <div class="cuenta-avatar" aria-hidden="true"><%= iniciales %></div>
+    <div class="cuenta-cabecera-texto">
+      <h1>Hola, <%= cuenta.nombre %></h1>
+      <p><%= cuenta.email %><% if (miembroDesde) { %> · Cliente desde <%= miembroDesde %><% } %></p>
+    </div>
+    <div class="cuenta-cabecera-acciones">
+      <% if (usuarioSesion.rol === 'administrador') { %>
+        <button type="button" data-href="/admin">Panel de administración</button>
+      <% } %>
+      <form action="/auth/logout" method="POST" style="margin:0;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit">Cerrar sesión</button>
+      </form>
+    </div>
+  </section>
+
+    <nav class="cuenta-resumen" aria-label="Resumen de tu actividad">
+    <a href="/pedidos" class="cuenta-dato">
+      <strong><%= totalPedidos %></strong>
+      <span>Pedidos</span>
+    </a>
+    <a href="/pedidos" class="cuenta-dato">
+      <strong><%= pedidosEnCurso %></strong>
+      <span>En curso</span>
+    </a>
+    <a href="/favoritos" class="cuenta-dato">
+      <strong><%= totalFavoritos %></strong>
+      <span>Favoritos</span>
+    </a>
+    <a href="/notificaciones" class="cuenta-dato">
+      <strong><%= notificacionesNoLeidas %></strong>
+      <span>Sin leer</span>
+    </a>
+  </nav>
+
+    <section class="cuenta-seccion">
+    <div class="cuenta-seccion-titulo">
+      <h2>Últimas compras</h2>
+      <% if (totalPedidos > ultimosPedidos.length) { %><a href="/pedidos">Ver todos mis pedidos →</a><% } %>
+    </div>
+
+    <% if (ultimosPedidos.length === 0) { %>
+      <div class="cuenta-vacio">
+        <p>Todavía no has hecho ninguna compra.</p>
+        <button data-href="/productos">Ir al catálogo</button>
+      </div>
+    <% } else { %>
+      <div class="cuenta-lista">
+        <% ultimosPedidos.forEach(function(p) { %>
+          <div class="cuenta-fila">
+            <div class="cuenta-fila-principal">
+              <strong><%= p.numero_pedido %></strong>
+              <small><%= new Date(p.fecha_pedido).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }) %></small>
+            </div>
+            <span class="cuenta-estado cuenta-estado-<%= p.estado %>"><%= etiquetaEstado[p.estado] || p.estado %></span>
+            <span class="cuenta-fila-total">S/ <%= Number(p.total).toFixed(2) %></span>
+            <div class="cuenta-fila-acciones">
+              <% if (p.estado === 'pendiente') { %>
+                <button class="boton-chico" data-href="/pedidos/<%= p.id %>/pagar">Pagar</button>
+              <% } %>
+              <button type="button" class="boton-chico" data-href="/pedidos/<%= p.id %>">Ver detalle</button>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </section>
+
+    <% if (comprados.length > 0) { %>
+    <section class="cuenta-seccion">
+      <div class="cuenta-seccion-titulo">
+        <h2>Volver a comprar</h2>
+      </div>
+      <div class="cuenta-productos">
+        <% comprados.forEach(function(prod) { %>
+          <a href="/productos/<%= prod.id %>" class="cuenta-producto">
+            <div class="tarjeta-producto-foto">
+              <% if (prod.imagen_principal) { %>
+                <img src="/img/productos/<%= prod.imagen_principal %>" alt="<%= prod.nombre %>">
+              <% } else { %>
+                <div class="tarjeta-producto-sin-foto">Sin imagen</div>
+              <% } %>
+            </div>
+            <div class="tarjeta-producto-info">
+              <p class="tarjeta-producto-marca"><%= prod.marca || '' %></p>
+              <p class="tarjeta-producto-nombre"><%= prod.nombre %></p>
+              <p class="tarjeta-producto-precio">
+                <% if (prod.enOferta) { %>
+                  <span class="precio-tachado">S/ <%= prod.precio %></span>
+                  <span class="precio">S/ <%= prod.precioEfectivo.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="precio">S/ <%= prod.precio %></span>
+                <% } %>
+              </p>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+
+    <section class="cuenta-seccion">
+    <div class="cuenta-seccion-titulo">
+      <h2>Mis favoritos</h2>
+      <% if (totalFavoritos > favoritos.length) { %><a href="/favoritos">Ver todos (<%= totalFavoritos %>) →</a><% } %>
+    </div>
+
+    <% if (favoritos.length === 0) { %>
+      <div class="cuenta-vacio">
+        <p>Aún no has guardado favoritos. Toca el corazón de un producto para guardarlo aquí.</p>
+        <button data-href="/productos">Explorar productos</button>
+      </div>
+    <% } else { %>
+      <div class="cuenta-productos">
+        <% favoritos.forEach(function(prod) { %>
+          <a href="/productos/<%= prod.id %>" class="cuenta-producto">
+            <div class="tarjeta-producto-foto">
+              <% if (prod.imagen_principal) { %>
+                <img src="/img/productos/<%= prod.imagen_principal %>" alt="<%= prod.nombre %>">
+              <% } else { %>
+                <div class="tarjeta-producto-sin-foto">Sin imagen</div>
+              <% } %>
+              <% if (prod.enOferta) { %><span class="insignia-oferta tarjeta-producto-badge">Oferta</span><% } %>
+            </div>
+            <div class="tarjeta-producto-info">
+              <p class="tarjeta-producto-marca"><%= prod.marca || '' %></p>
+              <p class="tarjeta-producto-nombre"><%= prod.nombre %></p>
+              <p class="tarjeta-producto-precio">
+                <% if (prod.enOferta) { %>
+                  <span class="precio-tachado">S/ <%= prod.precio %></span>
+                  <span class="precio">S/ <%= prod.precioEfectivo.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="precio">S/ <%= prod.precio %></span>
+                <% } %>
+              </p>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    <% } %>
+  </section>
+
+    <div class="cuenta-columnas">
+    <section class="cuenta-seccion cuenta-tarjeta">
+      <div class="cuenta-seccion-titulo"><h2>Mis datos</h2></div>
+      <dl class="cuenta-datos">
+        <dt>Nombre</dt><dd><%= nombreCompleto %></dd>
+        <dt>Correo</dt><dd><%= cuenta.email %></dd>
+        <dt>Teléfono</dt><dd><%= cuenta.telefono || 'No registrado' %></dd>
+      </dl>
+    </section>
+
+    <section class="cuenta-seccion cuenta-tarjeta">
+      <div class="cuenta-seccion-titulo"><h2>Mis direcciones</h2></div>
+      <% if (direcciones.length === 0) { %>
+        <p class="cuenta-nota">Todavía no tienes direcciones guardadas. Se guardan cuando compras con envío a domicilio.</p>
+      <% } else { %>
+        <ul class="cuenta-direcciones">
+          <% direcciones.forEach(function(d) { %>
+            <li>
+              <strong><%= d.calle %></strong>
+              <% if (d.predeterminada) { %><span class="cuenta-estado cuenta-estado-pagado">Principal</span><% } %>
+              <small><%= d.distrito %>, <%= d.ciudad %><% if (d.referencia) { %> · <%= d.referencia %><% } %></small>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </section>
+  </div>
+</main>
+
+<%- include('layouts/footer') %>

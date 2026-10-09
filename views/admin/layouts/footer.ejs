@@ -1,0 +1,23 @@
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/interacciones.js"></script>
+
+  <script nonce="<%= nonce %>">
+     
+     
+     
+     
+    (function () {
+      var ruta = window.location.pathname;
+      var enlaces = document.querySelectorAll('#adminNav a[data-path]');
+      enlaces.forEach(function (a) {
+        if (ruta.indexOf(a.getAttribute('data-path')) === 0) {
+          a.classList.add('activo');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

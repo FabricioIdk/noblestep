@@ -1,0 +1,49 @@
+<%- include('../layouts/header') %>
+
+<main>
+<% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <table border="1" cellpadding="8">
+    <thead>
+      <tr><th>Nombre</th><th>RUC</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Activo</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% proveedores.forEach(function(p) { %>
+        <tr>
+          <td><%= p.nombre %></td>
+          <td><%= p.ruc %></td>
+          <td><%= p.contacto || '—' %></td>
+          <td><%= p.telefono || '—' %></td>
+          <td><%= p.email || '—' %></td>
+          <td><span class="badge <%= p.activo ? 'badge-exito' : 'badge-gris' %>"><%= p.activo ? 'Sí' : 'No' %></span></td>
+          <td>
+            <form action="/admin/proveedores/<%= p.id %>/toggle" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit"><%= p.activo ? 'Desactivar' : 'Activar' %></button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Nuevo proveedor</h2>
+  <form action="/admin/proveedores" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="text" name="nombre" placeholder="Razón social" required><br><br>
+    <input type="text" name="ruc" placeholder="RUC" required><br><br>
+    <input type="text" name="contacto" placeholder="Persona de contacto"><br><br>
+    <input type="text" name="telefono" placeholder="Teléfono"><br><br>
+    <input type="email" name="email" placeholder="Correo"><br><br>
+    <input type="text" name="direccion" placeholder="Dirección" style="width:300px;"><br><br>
+    <button type="submit">Registrar proveedor</button>
+  </form>
+
+  <br>
+  <button data-href="/admin/compras">Ir a órdenes de compra</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

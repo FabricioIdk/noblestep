@@ -1,0 +1,182 @@
+<%- include('./layouts/header') %>
+
+<div class="admin-welcome">
+  <div>
+    <p class="admin-welcome-eyebrow">Hola de nuevo</p>
+    <h2><%= usuarioSesion.nombre %> 👋</h2>
+  </div>
+  <a href="/" class="admin-btn-outline">Ver tienda (vista cliente)</a>
+</div>
+
+<div class="admin-stat-cards">
+  <div class="admin-stat-card admin-stat-verde">
+    <div class="admin-stat-icono"><i class="fi fi-rr-sack-dollar"></i></div>
+    <div>
+      <p class="admin-stat-label">Ventas de hoy</p>
+      <p class="admin-stat-valor">S/ <%= kpis.ventasHoyMonto %></p>
+      <p class="admin-stat-sub"><%= kpis.ventasHoyCantidad %> pedido<%= kpis.ventasHoyCantidad == 1 ? '' : 's' %></p>
+    </div>
+  </div>
+  <div class="admin-stat-card admin-stat-azul">
+    <div class="admin-stat-icono"><i class="fi fi-rr-shopping-bag"></i></div>
+    <div>
+      <p class="admin-stat-label">Ventas del mes</p>
+      <p class="admin-stat-valor">S/ <%= kpis.ventasMesMonto %></p>
+      <p class="admin-stat-sub">Acumulado del mes</p>
+    </div>
+  </div>
+  <div class="admin-stat-card admin-stat-rosa">
+    <div class="admin-stat-icono"><i class="fi fi-rr-receipt"></i></div>
+    <div>
+      <p class="admin-stat-label">Total de pedidos</p>
+      <p class="admin-stat-valor"><%= kpis.totalPedidos %></p>
+      <p class="admin-stat-sub">Histórico completo</p>
+    </div>
+  </div>
+  <div class="admin-stat-card admin-stat-naranja">
+    <div class="admin-stat-icono"><i class="fi fi-rr-triangle-warning"></i></div>
+    <div>
+      <p class="admin-stat-label">Stock crítico</p>
+      <p class="admin-stat-valor"><%= kpis.alertasStock %></p>
+      <p class="admin-stat-sub">Variantes bajo el mínimo</p>
+    </div>
+  </div>
+</div>
+
+<div class="admin-panel">
+  <h3 style="margin-top:0;">Ventas — últimos 7 días</h3>
+  <canvas id="graficoVentas" height="90"></canvas>
+</div>
+
+<div class="admin-cols-2">
+  <div class="admin-panel">
+    <h3 style="margin-top:0;">Pedidos recientes</h3>
+    <% if (pedidosRecientes.length === 0) { %>
+      <p>Todavía no hay pedidos registrados.</p>
+    <% } else { %>
+      <table border="1" cellpadding="6">
+        <thead><tr><th>Cliente</th><th>Fecha</th><th>Estado</th><th>Total</th></tr></thead>
+        <tbody>
+          <% pedidosRecientes.forEach(function(p) { %>
+            <tr>
+              <td><%= p.nombre %> <%= p.apellido %></td>
+              <td><%= new Date(p.fecha_pedido).toLocaleDateString('es-PE') %></td>
+              <td>
+                <span class="badge <%= p.estado === 'entregado' ? 'badge-exito' : (p.estado === 'cancelado' ? 'badge-alerta' : 'badge-negro') %>">
+                  <%= p.estado %>
+                </span>
+              </td>
+              <td class="precio">S/ <%= p.total %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <p style="margin-bottom:0;"><a href="/admin/pedidos">Ver todos los pedidos →</a></p>
+    <% } %>
+  </div>
+
+  <div class="admin-panel">
+    <h3 style="margin-top:0;">Actividad reciente</h3>
+    <% if (actividadReciente.length === 0) { %>
+      <p>Todavía no hay acciones registradas.</p>
+    <% } else { %>
+      <ul class="admin-actividad-lista">
+        <% actividadReciente.forEach(function(a) { %>
+          <li>
+            <span class="admin-actividad-punto"></span>
+            <div>
+              <strong><%= a.accion %></strong>
+              <p><%= a.detalle %></p>
+              <small><%= a.nombre ? a.nombre + ' ' + a.apellido + ' — ' : '' %><%= new Date(a.fecha).toLocaleString('es-PE') %></small>
+            </div>
+          </li>
+        <% }); %>
+      </ul>
+      <p style="margin-bottom:0;"><a href="/admin/auditoria">Ver auditoría completa →</a></p>
+    <% } %>
+  </div>
+</div>
+
+<script nonce="<%= nonce %>">
+   
+   
+   
+   
+  (function () {
+    var etiquetas = <%- JSON.stringify(grafico.etiquetas) %>;
+    var valores = <%- JSON.stringify(grafico.valores) %>;
+
+    var canvas = document.getElementById('graficoVentas');
+    var ctx = canvas.getContext('2d');
+
+     
+     
+    var ancho = canvas.clientWidth;
+    var alto = canvas.clientHeight || 260;
+    canvas.width = ancho;
+    canvas.height = alto;
+
+    var margen = { arriba: 20, abajo: 30, izquierda: 55, derecha: 20 };
+    var anchoGrafico = ancho - margen.izquierda - margen.derecha;
+    var altoGrafico = alto - margen.arriba - margen.abajo;
+
+    var maximo = Math.max.apply(null, valores.concat([1])) * 1.15;  
+
+    function coordX(indice) {
+      return margen.izquierda + (indice / (etiquetas.length - 1)) * anchoGrafico;
+    }
+    function coordY(valor) {
+      return margen.arriba + altoGrafico - (valor / maximo) * altoGrafico;
+    }
+
+     
+    ctx.strokeStyle = '#eee';
+    ctx.fillStyle = '#999';
+    ctx.font = '11px Arial';
+    ctx.textAlign = 'right';
+    var pasos = 4;
+    for (var p = 0; p <= pasos; p++) {
+      var valorEje = (maximo / pasos) * p;
+      var y = coordY(valorEje);
+      ctx.beginPath();
+      ctx.moveTo(margen.izquierda, y);
+      ctx.lineTo(ancho - margen.derecha, y);
+      ctx.stroke();
+      ctx.fillText('S/ ' + Math.round(valorEje), margen.izquierda - 8, y + 4);
+    }
+
+     
+    ctx.beginPath();
+    ctx.moveTo(coordX(0), coordY(0));
+    for (var i = 0; i < valores.length; i++) { ctx.lineTo(coordX(i), coordY(valores[i])); }
+    ctx.lineTo(coordX(valores.length - 1), coordY(0));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 90, 31, 0.12)';
+    ctx.fill();
+
+     
+    ctx.beginPath();
+    for (var j = 0; j < valores.length; j++) {
+      var x = coordX(j), y2 = coordY(valores[j]);
+      if (j === 0) ctx.moveTo(x, y2); else ctx.lineTo(x, y2);
+    }
+    ctx.strokeStyle = '#ff5a1f';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+     
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff5a1f';
+    for (var k = 0; k < valores.length; k++) {
+      var px = coordX(k), py = coordY(valores[k]);
+      ctx.beginPath();
+      ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#666';
+      ctx.fillText(etiquetas[k], px, alto - 8);
+      ctx.fillStyle = '#ff5a1f';
+    }
+  })();
+</script>
+
+<%- include('./layouts/footer') %>

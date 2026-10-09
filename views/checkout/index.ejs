@@ -1,0 +1,127 @@
+<%- include('../layouts/header') %>
+
+<main>
+  <h1>Confirmar pedido</h1>
+
+  <% if (error) { %>
+    <p style="color: var(--alerta); background: var(--alerta-bg); padding: 0.8rem 1rem; border-radius: var(--radio);"><%= error %></p>
+  <% } %>
+
+  <div class="checkout-layout">
+
+    <form action="/checkout" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <h3>¿Cómo quieres recibirlo?</h3>
+      <div class="opciones-entrega">
+        <label class="opcion-entrega">
+          <input type="radio" name="tipo_entrega" value="envio_domicilio" checked>
+          <span class="opcion-entrega-texto">
+            <strong>Envío a domicilio</strong>
+            <span id="textoOpcionDomicilio"><%= envio.costoDomicilio === 0 ? 'Gratis' : 'S/ ' + envio.costoDomicilio.toFixed(2) %></span>
+          </span>
+        </label>
+        <label class="opcion-entrega">
+          <input type="radio" name="tipo_entrega" value="recojo_tienda">
+          <span class="opcion-entrega-texto">
+            <strong>Recoger en tienda</strong>
+            <span>Gratis</span>
+          </span>
+        </label>
+      </div>
+
+      <div id="bloqueDireccion" class="bloque-formulario">
+        <p>Dirección de entrega</p>
+        <% if (direcciones.length > 0) { %>
+          <% direcciones.forEach(function(d) { %>
+            <label class="direccion-guardada">
+              <input type="radio" name="direccion_id" value="<%= d.id %>" <%= d.predeterminada ? 'checked' : '' %>>
+              <%= d.calle %>, <%= d.distrito %>, <%= d.ciudad %>
+            </label>
+          <% }); %>
+          <label class="direccion-guardada">
+            <input type="radio" name="direccion_id" value="nueva"> Usar una dirección nueva
+          </label>
+        <% } else { %>
+          <p style="font-size:0.85rem; color:var(--tinta-suave);">Todavía no tienes direcciones registradas. Completa una nueva:</p>
+          <input type="hidden" name="direccion_id" value="nueva">
+        <% } %>
+
+        <div class="campos-direccion-nueva">
+          <input type="text" name="calle" placeholder="Calle y número">
+          <input type="text" name="distrito" placeholder="Distrito">
+          <input type="text" name="ciudad" placeholder="Ciudad">
+          <input type="text" name="referencia" placeholder="Referencia (opcional)">
+        </div>
+      </div>
+
+      <div id="bloqueTienda" class="bloque-formulario" style="display:none;">
+        <p>Elige la tienda donde recogerás tu pedido</p>
+        <% if (tiendasFisicas.length === 0) { %>
+          <p style="font-size:0.85rem; color:var(--tinta-suave);">No hay tiendas físicas disponibles por ahora para recojo.</p>
+        <% } else { %>
+          <% tiendasFisicas.forEach(function(t) { %>
+            <label class="direccion-guardada">
+              <input type="radio" name="tienda_recojo_id" value="<%= t.id %>">
+              <%= t.nombre %><% if (t.distrito) { %> — <%= t.distrito %><% } %>
+            </label>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <div class="bloque-formulario">
+        <p>Cupón de descuento (opcional)</p>
+        <input type="text" name="cupon_codigo" placeholder="Código del cupón" style="width:100%;">
+      </div>
+
+      <button type="submit">Confirmar y generar pedido</button>
+      <button type="button" data-href="/carrito">Volver al carrito</button>
+    </form>
+
+    <aside class="checkout-resumen">
+      <h2>Resumen</h2>
+      <% items.forEach(function(item) { %>
+        <div class="carrito-resumen-fila">
+          <span style="color:var(--tinta-suave);">
+            <%= item.cantidad %>× <%= item.producto ? item.producto.nombre : '—' %>
+            <br><small style="color:var(--tinta-mute);"><%= item.VarianteProducto.talla %> · <%= item.VarianteProducto.color %></small>
+          </span>
+          <span style="font-weight:600; white-space:nowrap;">S/ <%= (item.precio_unitario * item.cantidad).toFixed(2) %></span>
+        </div>
+      <% }); %>
+
+      <div class="carrito-resumen-fila" style="padding-top:0.8rem; border-top:1px solid var(--linea);">
+        <span style="color:var(--tinta-suave);">Subtotal</span>
+        <span style="font-weight:600;">S/ <%= subtotal.toFixed(2) %></span>
+      </div>
+      <div class="carrito-resumen-fila">
+        <span style="color:var(--tinta-suave);">Envío</span>
+        <span id="lineaCostoEnvio" style="font-weight:600; color:var(--exito);"><%= envio.costoDomicilio === 0 ? 'Gratis' : 'S/ ' + envio.costoDomicilio.toFixed(2) %></span>
+      </div>
+      <% if (envio.faltaParaGratis > 0) { %>
+        <p id="avisoEnvioGratis" class="carrito-resumen-nota">Agrega S/ <%= envio.faltaParaGratis.toFixed(2) %> más y el envío a domicilio sale gratis.</p>
+      <% } %>
+      <p class="carrito-resumen-nota">El IGV (18%) y el descuento del cupón, si aplica, se calculan al confirmar.</p>
+    </aside>
+
+  </div>
+</main>
+
+<script nonce="<%= nonce %>">
+  (function () {
+    var textoDomicilio = <%= envio.costoDomicilio %> === 0 ? 'Gratis' : 'S/ <%= envio.costoDomicilio.toFixed(2) %>';
+    function actualizar(tipo) {
+      var domicilio = tipo === 'envio_domicilio';
+      document.getElementById('bloqueDireccion').style.display = domicilio ? 'block' : 'none';
+      document.getElementById('bloqueTienda').style.display = domicilio ? 'none' : 'block';
+      document.getElementById('lineaCostoEnvio').textContent = domicilio ? textoDomicilio : 'Gratis (recojo en tienda)';
+      var aviso = document.getElementById('avisoEnvioGratis');
+      if (aviso) aviso.style.display = domicilio ? 'block' : 'none';
+    }
+    document.querySelectorAll('input[name="tipo_entrega"]').forEach(function (radio) {
+      radio.addEventListener('change', function () { actualizar(radio.value); });
+    });
+  })();
+</script>
+
+<%- include('../layouts/footer') %>

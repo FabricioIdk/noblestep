@@ -1,0 +1,341 @@
+<%- include('../layouts/header') %>
+
+<main>
+  <p style="font-size:0.8rem; color: var(--tinta-suave);">
+    <a href="/">Inicio</a> ›
+    <a href="/productos">Catálogo</a> ›
+    <% if (producto.categoria) { %>
+      <a href="/productos?categoria_id=<%= producto.categoria.id %>"><%= producto.categoria.nombre %></a> ›
+    <% } %>
+    <% if (producto.marca) { %>
+      <a href="/productos?marca=<%= encodeURIComponent(producto.marca) %>"><%= producto.marca %></a>
+    <% } %>
+  </p>
+
+  <%
+    var fotos = [];
+    if (producto.imagen_principal) fotos.push(producto.imagen_principal);
+    if (producto.galeria) { producto.galeria.forEach(function(g) { fotos.push(g.nombre_archivo); }); }
+    var COLOR_HEX = { 'Negro':'#111111', 'Blanco':'#ffffff', 'Gris':'#9a9a9a', 'Azul':'#2952e3', 'Rojo':'#c0392b', 'Verde':'#1e824c', 'Marrón':'#7a4b2a', 'Beige':'#d9c9a3' };
+  %>
+
+  <div style="display:flex; flex-wrap:wrap; align-items:flex-start;">
+    <div style="display:flex; align-items:flex-start; margin-right:2.8rem; margin-bottom:1.5rem;">
+      <% if (fotos.length > 1) { %>
+        <div style="display:flex; flex-direction:column; margin-right:14px;">
+          <% fotos.forEach(function(f, idx) { %>
+            <img src="/img/productos/<%= f %>" alt="miniatura <%= idx + 1 %>" width="64"
+                 style="cursor:pointer; border:1.5px solid <%= idx === 0 ? 'var(--tinta)' : 'var(--linea)' %>; border-radius:var(--radio); margin-bottom:10px; display:block;"
+                 data-miniatura>
+          <% }); %>
+        </div>
+      <% } %>
+      <% if (fotos.length > 0) { %>
+        <div id="contenedorZoom" class="contenedor-foto-zoom">
+          <img id="fotoGrande" src="/img/productos/<%= fotos[0] %>" alt="<%= producto.nombre %>">
+        </div>
+        <script nonce="<%= nonce %>">
+           
+           
+           
+           
+           
+           
+          (function () {
+            var contenedor = document.getElementById('contenedorZoom');
+            var imagen = document.getElementById('fotoGrande');
+            if (!contenedor || !imagen) return;
+
+             
+             
+            document.querySelectorAll('img[data-miniatura]').forEach(function (mini) {
+              mini.addEventListener('click', function () {
+                imagen.src = mini.src;
+                mini.parentNode.querySelectorAll('img').forEach(function (m) { m.style.borderColor = 'var(--linea)'; });
+                mini.style.borderColor = 'var(--tinta)';
+              });
+            });
+
+            contenedor.addEventListener('mousemove', function (evento) {
+              var rect = contenedor.getBoundingClientRect();
+              var x = ((evento.clientX - rect.left) / rect.width) * 100;
+              var y = ((evento.clientY - rect.top) / rect.height) * 100;
+              imagen.style.transformOrigin = x + '% ' + y + '%';
+            });
+
+            contenedor.addEventListener('mouseleave', function () {
+              imagen.style.transformOrigin = 'center center';  
+            });
+          })();
+        </script>
+      <% } else { %>
+        <div class="foto-producto-placeholder">Sin imagen</div>
+      <% } %>
+    </div>
+    <div style="flex:1; min-width:280px;">
+      <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--tinta-suave); margin-bottom:0.2rem;"><%= producto.marca || 'Noble Step' %></p>
+      <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+        <h1 style="margin-top:0;"><%= producto.nombre %></h1>
+        <% if (usuarioSesion) { %>
+          <form action="/favoritos/<%= producto.id %>/toggle" method="POST" style="margin:0;" data-favorito>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="regresar_a" value="/productos/<%= producto.id %>">
+            <button type="submit" title="<%= esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos' %>"
+                    class="boton-favorito-detalle <%= esFavorito ? 'favorito-activo' : '' %>">
+              <i class="fi fi-rr-heart"></i>
+            </button>
+          </form>
+        <% } %>
+      </div>
+
+      <p>
+        <% if (producto.enOferta) { %>
+          <span class="precio-tachado">S/ <%= producto.precio %></span>
+          <span class="precio" style="font-size:1.3rem;">S/ <%= producto.precioEfectivo.toFixed(2) %></span>
+          <span class="insignia-oferta">Oferta</span>
+        <% } else { %>
+          <span class="precio" style="font-size:1.3rem;">S/ <%= producto.precio %></span>
+        <% } %>
+      </p>
+      <p style="font-size:0.78rem; color:var(--tinta-suave); text-transform:uppercase; letter-spacing:0.04em;">Género: <%= ({hombre:'Hombre',mujer:'Mujer',unisex:'Unisex',nino:'Niño'})[producto.genero] || 'Unisex' %></p>
+
+      <hr>
+
+      <% if (typeof errorCarrito !== 'undefined' && errorCarrito) { %>
+        <p style="color: red;"><%= errorCarrito %></p>
+      <% } %>
+
+      <% if (producto.variantes && producto.variantes.length > 0) { %>
+                <form action="/carrito/agregar" method="POST" id="formAgregar" style="margin:0;"></form>
+        <div>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" form="formAgregar">
+          <input type="hidden" name="variante_id" id="varianteSeleccionada" form="formAgregar">
+
+          <h3>Color</h3>
+          <div id="selectorColor">
+            <% producto.coloresUnicos.forEach(function(color, idx) { %>
+              <button type="button" class="swatch-color <%= idx === 0 ? 'activo' : '' %>" data-color="<%= color %>"
+                      title="<%= color %>"
+                      style="width:30px; height:30px; border-radius:50%; padding:0; margin-right:8px; vertical-align:middle;
+                             background:<%= COLOR_HEX[color] || '#ccc' %>; border:2px solid <%= idx === 0 ? 'var(--tinta)' : 'var(--linea)' %>;"
+                      ></button>
+            <% }); %>
+          </div>
+          <p id="colorElegido" style="font-size:0.82rem; color:var(--tinta-suave); margin-top:0.3rem;">
+            Color: <strong><%= producto.coloresUnicos[0] %></strong>
+          </p>
+
+          <h3 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.3rem;">
+            Talla EUR
+            <a href="/guia-tallas" target="_blank" style="font-size:0.75rem; font-weight:400; text-transform:none; letter-spacing:0;">Guía de tallas</a>
+          </h3>
+          <div id="selectorTalla">
+            <% producto.variantes.forEach(function(v) { %>
+              <button type="button" class="pill-talla <%= v.stockOnline === 0 ? 'agotado' : '' %>" data-color="<%= v.color %>" data-variante="<%= v.id %>"
+                      data-stock="<%= v.stockOnline %>"
+                      data-disponibilidad="<%= v.disponibilidad ? v.disponibilidad.filter(function(d){return d.tipo==='fisica' && d.stock>0;}).map(function(d){return d.tienda;}).join(', ') : '' %>"
+                      style="display:none; margin:0 6px 6px 0; min-width:48px;">
+                <%= v.talla %>
+              </button>
+            <% }); %>
+          </div>
+
+          <div id="formAvisame" style="display:none; margin-top:0.8rem;">
+            <p style="font-size:0.85rem; margin-bottom:0.4rem;">Esta talla está agotada online. Te avisamos por correo cuando vuelva:</p>
+            <form id="formAvisarStock" style="display:flex; gap:0.5rem;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="variante_id" id="varianteParaAviso">
+              <input type="email" name="email" placeholder="Tu correo electrónico" required
+                     value="<%= usuarioSesion ? usuarioSesion.email : '' %>" style="flex:1;">
+              <button type="submit">Avísame</button>
+            </form>
+            <p id="avisoConfirmado" style="display:none; color: var(--exito); font-size:0.85rem; margin-top:0.4rem;">
+              ✓ Listo, te avisaremos a tu correo cuando vuelva el stock.
+            </p>
+          </div>
+
+          <p id="avisoStock" style="font-size:0.82rem; min-height:1.2em;"></p>
+
+          <input type="number" name="cantidad" value="1" min="1" form="formAgregar" style="width:60px; margin-bottom:0.8rem;">
+
+          <% if (usuarioSesion) { %>
+            <button type="submit" form="formAgregar" style="width:100%; padding:0.9rem;" id="btnAgregar" disabled>Añadir al carrito</button>
+          <% } else { %>
+            <p><a href="/auth/login">Inicia sesión</a> para agregar productos al carrito.</p>
+          <% } %>
+        </div>
+
+        <button type="button" id="btnComprarAhora" disabled
+                style="width:100%; padding:0.85rem; margin-top:0.6rem; background:var(--papel); color:var(--tinta); border:1.5px solid var(--tinta);">
+          Comprar ahora
+        </button>
+        <p style="font-size:0.75rem; color:var(--tinta-suave); margin-top:0.3rem;">
+          "Comprar ahora" no requiere tener una cuenta creada.
+        </p>
+
+        <script nonce="<%= nonce %>">
+          function actualizarTallasVisibles(color) {
+            var botones = document.querySelectorAll('#selectorTalla .pill-talla');
+            for (var i = 0; i < botones.length; i++) {
+              var btn = botones[i];
+              btn.style.display = (btn.getAttribute('data-color') === color) ? 'inline-block' : 'none';
+              btn.classList.remove('activo');
+            }
+            document.getElementById('varianteSeleccionada').value = '';
+             
+             
+             
+            document.getElementById('avisoStock').textContent = 'Elige una talla para continuar.';
+            var boton = document.getElementById('btnAgregar');
+            if (boton) { boton.disabled = true; boton.textContent = 'Añadir al carrito'; }
+            var botonRapido = document.getElementById('btnComprarAhora');
+            if (botonRapido) { botonRapido.disabled = true; botonRapido.textContent = 'Comprar ahora'; }
+          }
+
+          function seleccionarColor(color, el) {
+            var swatches = document.querySelectorAll('.swatch-color');
+            for (var i = 0; i < swatches.length; i++) {
+              swatches[i].style.borderColor = 'var(--linea)';
+              swatches[i].classList.remove('activo');
+            }
+            el.style.borderColor = 'var(--tinta)';
+            el.classList.add('activo');
+            document.getElementById('colorElegido').innerHTML = 'Color: <strong>' + color + '</strong>';
+            actualizarTallasVisibles(color);
+          }
+
+          function seleccionarTalla(btn) {
+            var botones = document.querySelectorAll('#selectorTalla .pill-talla');
+            for (var i = 0; i < botones.length; i++) { botones[i].classList.remove('activo'); }
+            btn.classList.add('activo');
+
+            var stock = parseInt(btn.getAttribute('data-stock'), 10);
+            var boton = document.getElementById('btnAgregar');
+            var botonRapido = document.getElementById('btnComprarAhora');
+            var formAvisame = document.getElementById('formAvisame');
+
+            if (stock === 0) {
+               
+               
+               
+               
+              document.getElementById('varianteSeleccionada').value = '';
+              document.getElementById('avisoStock').textContent = '';
+              if (boton) { boton.disabled = true; boton.textContent = 'Sin stock'; }
+              if (botonRapido) { botonRapido.disabled = true; botonRapido.textContent = 'Sin stock'; }
+              document.getElementById('varianteParaAviso').value = btn.getAttribute('data-variante');
+              document.getElementById('avisoConfirmado').style.display = 'none';
+              formAvisame.style.display = 'block';
+              return;
+            }
+
+            formAvisame.style.display = 'none';
+            document.getElementById('varianteSeleccionada').value = btn.getAttribute('data-variante');
+
+            var disponibilidad = btn.getAttribute('data-disponibilidad');
+            var aviso = document.getElementById('avisoStock');
+            if (stock <= 3) {
+              aviso.innerHTML = '<span style="color: var(--alerta);">¡Últimas ' + stock + ' unidades online!</span>';
+            } else {
+              aviso.textContent = '';
+            }
+            if (disponibilidad) {
+              aviso.innerHTML += (aviso.innerHTML ? '<br>' : '') + 'También disponible para recojo en: ' + disponibilidad;
+            }
+
+            if (boton) { boton.disabled = false; boton.textContent = 'Añadir al carrito'; }
+            if (botonRapido) { botonRapido.disabled = false; botonRapido.textContent = 'Comprar ahora'; }
+          }
+
+           
+           
+           
+          function pedirAviso(evento, formulario) {
+            evento.preventDefault();
+             
+       
+      var datos = new URLSearchParams(new FormData(formulario));
+            fetch(window.location.pathname + '/avisame', {
+              method: 'POST',
+              body: datos,
+              headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+              .then(function (respuesta) { if (!respuesta.ok) throw new Error('fallo'); return respuesta.json(); })
+              .then(function () {
+                formulario.style.display = 'none';
+                document.getElementById('avisoConfirmado').style.display = 'block';
+              })
+              .catch(function () { formulario.submit(); });
+            return false;
+          }
+
+          function irComprarAhora() {
+            var varianteId = document.getElementById('varianteSeleccionada').value;
+            if (!varianteId) return;
+            var cantidadInput = document.querySelector('input[name="cantidad"]');
+            var cantidad = cantidadInput ? cantidadInput.value : 1;
+            location.href = '/comprar-ahora/' + varianteId + '?cantidad=' + cantidad;
+          }
+
+           
+           
+          document.querySelectorAll('#selectorColor .swatch-color').forEach(function (sw) {
+            sw.addEventListener('click', function () { seleccionarColor(sw.getAttribute('data-color'), sw); });
+          });
+          document.querySelectorAll('#selectorTalla .pill-talla').forEach(function (btn) {
+            btn.addEventListener('click', function () { seleccionarTalla(btn); });
+          });
+          document.getElementById('btnComprarAhora').addEventListener('click', irComprarAhora);
+          document.getElementById('formAvisarStock').addEventListener('submit', function (e) { pedirAviso(e, this); });
+          document.getElementById('formAgregar').addEventListener('submit', function (e) { agregarAlCarrito(e, this); });
+
+           
+          actualizarTallasVisibles('<%= producto.coloresUnicos[0] %>');
+        </script>
+      <% } else { %>
+        <p>Sin variantes registradas todavía.</p>
+        <button disabled title="No hay tallas disponibles" style="width:100%; padding:0.9rem;">Añadir al carrito</button>
+      <% } %>
+
+      <hr>
+      <p><%= producto.descripcion || 'Sin descripción todavía.' %></p>
+
+      <button type="button" data-href="/productos">Volver al catálogo</button>
+    </div>
+  </div>
+
+  <% if (relacionados.length > 0) { %>
+    <hr>
+    <h3>También te puede interesar</h3>
+    <div class="grilla-productos">
+      <% relacionados.forEach(function(r) { %>
+        <div class="tarjeta-producto">
+          <a href="/productos/<%= r.id %>" style="text-decoration:none; color:inherit; display:block;">
+            <div class="tarjeta-producto-foto">
+              <% if (r.imagen_principal) { %>
+                <img src="/img/productos/<%= r.imagen_principal %>" alt="<%= r.nombre %>">
+              <% } else { %>
+                <div class="tarjeta-producto-sin-foto">Sin imagen</div>
+              <% } %>
+              <% if (r.enOferta) { %><span class="insignia-oferta tarjeta-producto-badge">Oferta</span><% } %>
+            </div>
+            <div class="tarjeta-producto-info">
+              <p class="tarjeta-producto-marca"><%= r.marca || '' %></p>
+              <p class="tarjeta-producto-nombre"><%= r.nombre %></p>
+              <p class="tarjeta-producto-precio">
+                <% if (r.enOferta) { %>
+                  <span class="precio-tachado">S/ <%= r.precio %></span>
+                  <span class="precio">S/ <%= r.precioEfectivo.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="precio">S/ <%= r.precio %></span>
+                <% } %>
+              </p>
+            </div>
+          </a>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../layouts/footer') %>

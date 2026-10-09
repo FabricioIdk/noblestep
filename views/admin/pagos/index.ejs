@@ -1,0 +1,46 @@
+<%- include('../layouts/header') %>
+
+<main>
+<form action="/admin/pagos" method="GET">
+    <label>Filtrar por estado:</label>
+    <select name="estado" data-autoenviar>
+      <option value="">Todos</option>
+      <% estados.forEach(function(e) { %>
+        <option value="<%= e %>" <%= filtroEstado === e ? 'selected' : '' %>><%= e %></option>
+      <% }); %>
+    </select>
+  </form>
+
+  <br>
+  <% if (pagos.length === 0) { %>
+    <p>No hay pagos<%= filtroEstado ? ' con estado "' + filtroEstado + '"' : '' %>.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr><th>Fecha</th><th>Pedido</th><th>Cliente</th><th>Método</th><th>Estado</th><th class="precio">Monto</th><th>Referencia</th></tr>
+      </thead>
+      <tbody>
+        <% pagos.forEach(function(p) { %>
+          <tr>
+            <td><%= new Date(p.fecha_pago).toLocaleString('es-PE') %></td>
+            <td><a href="/admin/pedidos/<%= p.Pedido.id %>"><%= p.Pedido.numero_pedido %></a></td>
+            <td><%= p.Pedido.Usuario ? (p.Pedido.Usuario.nombre + ' ' + p.Pedido.Usuario.apellido) : '—' %></td>
+            <td><%= p.metodo_pago %></td>
+            <td>
+              <span class="badge <%= p.estado_pago === 'aprobado' ? 'badge-exito' : (p.estado_pago === 'rechazado' ? 'badge-alerta' : 'badge-gris') %>">
+                <%= p.estado_pago %>
+              </span>
+            </td>
+            <td class="precio">S/ <%= p.monto %></td>
+            <td><%= p.referencia_transaccion || '—' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <br>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

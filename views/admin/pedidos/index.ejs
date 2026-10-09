@@ -1,0 +1,45 @@
+<%- include('../layouts/header') %>
+
+<main>
+<form action="/admin/pedidos" method="GET">
+    <label>Filtrar por estado:</label>
+    <select name="estado" data-autoenviar>
+      <option value="">Todos</option>
+      <% estados.forEach(function(e) { %>
+        <option value="<%= e %>" <%= filtroEstado === e ? 'selected' : '' %>><%= e %></option>
+      <% }); %>
+    </select>
+  </form>
+
+  <br>
+  <% if (pedidos.length === 0) { %>
+    <p>No hay pedidos<%= filtroEstado ? ' con estado "' + filtroEstado + '"' : '' %>.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead>
+        <tr><th>N° Pedido</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th>Total</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% pedidos.forEach(function(p) { %>
+          <tr>
+            <td><%= p.numero_pedido %></td>
+            <td><%= p.Usuario ? (p.Usuario.nombre + ' ' + p.Usuario.apellido) : '—' %></td>
+            <td><%= new Date(p.fecha_pedido).toLocaleDateString('es-PE') %></td>
+            <td>
+              <span class="badge <%= p.estado === 'entregado' ? 'badge-exito' : (p.estado === 'cancelado' ? 'badge-alerta' : 'badge-negro') %>">
+                <%= p.estado %>
+              </span>
+            </td>
+            <td>S/ <%= p.total %></td>
+            <td><button data-href="/admin/pedidos/<%= p.id %>">Ver</button></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <br>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

@@ -1,0 +1,41 @@
+<%- include('../layouts/header') %>
+
+<main>
+<% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <table border="1" cellpadding="8">
+    <thead><tr><th>Clave</th><th>Valor</th><th></th></tr></thead>
+    <tbody>
+      <% parametros.forEach(function(p) { %>
+        <tr>
+          <td><%= p.clave %></td>
+          <td><%= p.valor %></td>
+          <td>
+            <form action="/admin/configuracion/<%= p.id %>/eliminar" method="POST"
+                  data-confirm="¿Eliminar este parámetro?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Nuevo / actualizar parámetro</h2>
+  <p><small>Si la clave ya existe, se actualiza su valor en vez de duplicarla.</small></p>
+  <form action="/admin/configuracion" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="text" name="clave" placeholder="Clave (ej. igv_porcentaje)" required>
+    <input type="text" name="valor" placeholder="Valor (ej. 18)" required>
+    <button type="submit">Guardar</button>
+  </form>
+
+  <br>
+  <button data-href="/admin/auditoria">Ver auditoría</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

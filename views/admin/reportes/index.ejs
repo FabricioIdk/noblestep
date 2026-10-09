@@ -1,0 +1,137 @@
+<%- include('../layouts/header') %>
+
+<main>
+<h2>Resumen general</h2>
+  <div class="admin-kpis">
+    <div class="admin-kpi">
+      <span class="valor">S/ <%= kpis.ventasHoyMonto %></span>
+      <span class="etiqueta">Ventas de hoy (<%= kpis.ventasHoyCantidad %>)</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor">S/ <%= kpis.ventasMesMonto %></span>
+      <span class="etiqueta">Ventas del mes (<%= kpis.ventasMesCantidad %>)</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor">S/ <%= kpis.totalIngresos %></span>
+      <span class="etiqueta">Ingresos totales</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor">S/ <%= kpis.ticketPromedio %></span>
+      <span class="etiqueta">Ticket promedio</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor"><%= kpis.totalPedidos %></span>
+      <span class="etiqueta">Total de pedidos</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor"><%= kpis.productosActivos %></span>
+      <span class="etiqueta">Productos activos</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor"><%= kpis.clientesRegistrados %></span>
+      <span class="etiqueta">Clientes registrados</span>
+    </div>
+    <div class="admin-kpi">
+      <span class="valor" style="<%= kpis.alertasStock > 0 ? 'color: var(--alerta);' : '' %>"><%= kpis.alertasStock %></span>
+      <span class="etiqueta">Stock crítico</span>
+    </div>
+  </div>
+
+  <h2>Pedidos por estado</h2>
+  <table border="1" cellpadding="8">
+    <thead><tr><th>Estado</th><th>Cantidad</th></tr></thead>
+    <tbody>
+      <% pedidosPorEstado.forEach(function(r) { %>
+        <tr><td><%= r.estado %></td><td><%= r.cantidad %></td></tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Top 5 productos más vendidos</h2>
+  <% if (topProductos.length === 0) { %>
+    <p>Todavía no hay ventas registradas.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead><tr><th>Producto</th><th>Unidades vendidas</th><th>Ingresos generados</th></tr></thead>
+      <tbody>
+        <% topProductos.forEach(function(p) { %>
+          <tr><td><%= p.nombre %></td><td><%= p.unidades_vendidas %></td><td>S/ <%= Number(p.ingresos_generados).toFixed(2) %></td></tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <h2>Top 5 clientes</h2>
+  <% if (topClientes.length === 0) { %>
+    <p>Todavía no hay clientes con compras.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead><tr><th>Cliente</th><th>Correo</th><th>N° de pedidos</th><th>Total gastado</th></tr></thead>
+      <tbody>
+        <% topClientes.forEach(function(c) { %>
+          <tr>
+            <td><%= c.nombre %> <%= c.apellido %></td>
+            <td><%= c.email %></td>
+            <td><%= c.cantidad_pedidos %></td>
+            <td>S/ <%= Number(c.total_gastado).toFixed(2) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <h2>Ventas por tienda / canal</h2>
+  <table border="1" cellpadding="8">
+    <thead><tr><th>Tienda</th><th>Tipo</th><th>N° pedidos</th><th>Monto</th></tr></thead>
+    <tbody>
+      <% ventasPorTienda.forEach(function(v) { %>
+        <tr>
+          <td><%= v.tienda %></td>
+          <td><%= v.tipo === 'almacen_online' ? 'Online' : 'Tienda física' %></td>
+          <td><%= v.cantidad_pedidos %></td>
+          <td class="precio">S/ <%= Number(v.monto).toFixed(2) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Alertas de stock crítico</h2>
+  <% if (stockCritico.length === 0) { %>
+    <p>No hay variantes con stock por debajo del mínimo. Todo en orden.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead><tr><th>Tienda</th><th>Producto</th><th>Talla</th><th>Color</th><th>Stock actual</th><th>Stock mínimo</th></tr></thead>
+      <tbody>
+        <% stockCritico.forEach(function(s) { %>
+          <tr style="background-color:#ffe5e5;">
+            <td><%= s.tienda %></td>
+            <td><%= s.producto %></td><td><%= s.talla %></td><td><%= s.color %></td>
+            <td><%= s.stock %></td><td><%= s.stock_minimo %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <h2>Uso de cupones</h2>
+  <% if (usoCupones.length === 0) { %>
+    <p>No hay cupones registrados todavía.</p>
+  <% } else { %>
+    <table border="1" cellpadding="8">
+      <thead><tr><th>Código</th><th>Tipo</th><th>Valor</th><th>Activo</th><th>Veces usado</th></tr></thead>
+      <tbody>
+        <% usoCupones.forEach(function(c) { %>
+          <tr>
+            <td><%= c.codigo %></td><td><%= c.tipo_descuento %></td><td><%= c.valor %></td>
+            <td><%= c.activo ? 'Sí' : 'No' %></td><td><%= c.veces_usado %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <br>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

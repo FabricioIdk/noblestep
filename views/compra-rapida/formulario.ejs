@@ -1,0 +1,83 @@
+<%- include('../layouts/header') %>
+
+<main>
+  <h1>Comprar ahora</h1>
+  <p style="color:var(--tinta-suave);">Compra rápida, sin necesidad de crear una cuenta con contraseña — te la dejamos lista para que hagas seguimiento de tu pedido.</p>
+
+  <% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <div class="admin-panel">
+    <p><strong><%= producto.nombre %></strong> — Talla <%= variante.talla %> / <%= variante.color %></p>
+    <p>Cantidad: <%= cantidad %> — Subtotal: <span class="precio">S/ <%= subtotal.toFixed(2) %></span></p>
+    <p style="font-size:0.82rem; color:var(--tinta-suave);">Stock disponible: <%= stockOnline %> unidades</p>
+  </div>
+
+  <form action="/comprar-ahora" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="variante_id" value="<%= variante.id %>">
+    <input type="hidden" name="cantidad" value="<%= cantidad %>">
+
+    <h3>Tus datos</h3>
+    <input type="text" name="nombre" placeholder="Nombres" required><br>
+    <input type="text" name="apellido" placeholder="Apellidos" required><br>
+    <input type="email" name="email" placeholder="Correo electrónico" required><br>
+    <input type="text" name="telefono" placeholder="Teléfono (opcional)"><br>
+
+    <h3>¿Cómo quieres recibirlo?</h3>
+    <label>
+      <input type="radio" name="tipo_entrega" value="envio_domicilio" checked>
+      Envío a domicilio — <span id="lineaCostoEnvioRapida"><%= envio.costoDomicilio === 0 ? 'Gratis' : 'S/ ' + envio.costoDomicilio.toFixed(2) %></span>
+    </label><br>
+    <label>
+      <input type="radio" name="tipo_entrega" value="recojo_tienda">
+      Recoger en tienda — Gratis
+    </label>
+
+    <div id="bloqueDireccionRapida">
+      <h3>Dirección de entrega</h3>
+      <input type="text" name="calle" placeholder="Calle y número"><br>
+      <input type="text" name="distrito" placeholder="Distrito"><br>
+      <input type="text" name="ciudad" placeholder="Ciudad"><br>
+      <input type="text" name="referencia" placeholder="Referencia (opcional)"><br>
+    </div>
+
+    <div id="bloqueTiendaRapida" style="display:none;">
+      <h3>Elige la tienda donde recogerás tu pedido</h3>
+      <% if (tiendasFisicas.length === 0) { %>
+        <p>No hay tiendas físicas disponibles por ahora.</p>
+      <% } else { %>
+        <% tiendasFisicas.forEach(function(t) { %>
+          <label>
+            <input type="radio" name="tienda_recojo_id" value="<%= t.id %>">
+            <%= t.nombre %><% if (t.distrito) { %> — <%= t.distrito %><% } %>
+          </label><br>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <p style="font-size:0.8rem; color:var(--tinta-suave);">Eliges el método de pago en el siguiente paso. El IGV (18%) se calcula al confirmar.</p>
+
+    <button type="submit">Confirmar compra</button>
+    <button type="button" data-volver>Volver</button>
+  </form>
+</main>
+
+<script nonce="<%= nonce %>">
+   
+  (function () {
+    var textoDomicilio = <%= envio.costoDomicilio %> === 0 ? 'Gratis' : 'S/ <%= envio.costoDomicilio.toFixed(2) %>';
+    function actualizar(tipo) {
+      var domicilio = tipo === 'envio_domicilio';
+      document.getElementById('bloqueDireccionRapida').style.display = domicilio ? 'block' : 'none';
+      document.getElementById('bloqueTiendaRapida').style.display = domicilio ? 'none' : 'block';
+      document.getElementById('lineaCostoEnvioRapida').textContent = domicilio ? textoDomicilio : 'Gratis (recojo en tienda)';
+    }
+    document.querySelectorAll('input[name="tipo_entrega"]').forEach(function (radio) {
+      radio.addEventListener('change', function () { actualizar(radio.value); });
+    });
+  })();
+</script>
+
+<%- include('../layouts/footer') %>

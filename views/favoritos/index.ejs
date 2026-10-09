@@ -1,0 +1,48 @@
+<%- include('../layouts/header') %>
+
+<main>
+  <h1>Mis favoritos</h1>
+
+  <% if (productos.length === 0) { %>
+    <p>Todavía no tienes productos favoritos.</p>
+    <button data-href="/productos">Ir al catálogo</button>
+  <% } else { %>
+    <div class="grilla-productos">
+      <% productos.forEach(function(producto) { %>
+        <div class="tarjeta-producto">
+          <form action="/favoritos/<%= producto.id %>/toggle" method="POST" class="tarjeta-producto-favorito" data-quitar-favorito>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="regresar_a" value="/favoritos">
+            <button type="submit" title="Quitar de favoritos" class="favorito-activo">
+              <i class="fi fi-rr-heart"></i>
+            </button>
+          </form>
+          <a href="/productos/<%= producto.id %>" style="text-decoration:none; color:inherit; display:block;">
+            <div class="tarjeta-producto-foto">
+              <% if (producto.imagen_principal) { %>
+                <img src="/img/productos/<%= producto.imagen_principal %>" alt="<%= producto.nombre %>">
+              <% } else { %>
+                <div class="tarjeta-producto-sin-foto">Sin imagen</div>
+              <% } %>
+              <% if (producto.enOferta) { %><span class="insignia-oferta tarjeta-producto-badge">Oferta</span><% } %>
+            </div>
+            <div class="tarjeta-producto-info">
+              <p class="tarjeta-producto-marca"><%= producto.marca || (producto.categoria ? producto.categoria.nombre : '') %></p>
+              <p class="tarjeta-producto-nombre"><%= producto.nombre %></p>
+              <p class="tarjeta-producto-precio">
+                <% if (producto.enOferta) { %>
+                  <span class="precio-tachado">S/ <%= producto.precio %></span>
+                  <span class="precio">S/ <%= producto.precioEfectivo.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="precio">S/ <%= producto.precio %></span>
+                <% } %>
+              </p>
+            </div>
+          </a>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../layouts/footer') %>

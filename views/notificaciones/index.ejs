@@ -1,0 +1,32 @@
+<%- include('../layouts/header') %>
+
+<main>
+  <h1>Notificaciones</h1>
+
+  <% if (notificaciones.length === 0) { %>
+    <p>No tienes notificaciones todavía.</p>
+  <% } else { %>
+    <form action="/notificaciones/marcar-todas" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit">Marcar todas como leídas</button>
+    </form>
+    <br>
+    <% notificaciones.forEach(function(n) { %>
+      <div style="border:1px solid var(--linea); padding:8px; margin-bottom:6px; <%= n.leido ? '' : 'background-color:var(--gris-suave);' %>">
+        <strong><%= n.tipo %></strong> — <%= new Date(n.fecha).toLocaleString('es-PE') %>
+        <% if (!n.leido) { %> <span style="color:red;">(nueva)</span><% } %><br>
+        <%= n.mensaje %>
+        <% if (!n.leido) { %>
+          <form action="/notificaciones/<%= n.id %>/leer" method="POST" style="display:inline;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit">Marcar como leída</button>
+          </form>
+        <% } %>
+      </div>
+    <% }); %>
+  <% } %>
+
+  <button data-href="/">Volver al inicio</button>
+</main>
+
+<%- include('../layouts/footer') %>

@@ -1,0 +1,43 @@
+<%- include('../layouts/header') %>
+
+<main>
+<% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <table border="1" cellpadding="8">
+    <thead>
+      <tr><th>Nombre</th><th>Descripción</th><th>Slug</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% categorias.forEach(function(c) { %>
+        <tr>
+          <td><%= c.nombre %></td>
+          <td><%= c.descripcion || '—' %></td>
+          <td><%= c.slug %></td>
+          <td>
+            <form action="/admin/categorias/<%= c.id %>/eliminar" method="POST"
+                  data-confirm="¿Eliminar esta categoría?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Nueva categoría</h2>
+  <form action="/admin/categorias" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="text" name="nombre" placeholder="Nombre" required>
+    <input type="text" name="descripcion" placeholder="Descripción (opcional)">
+    <button type="submit">Crear</button>
+  </form>
+
+  <br>
+  <button data-href="/admin/productos">Volver a productos</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

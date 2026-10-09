@@ -1,0 +1,41 @@
+<%- include('../layouts/header') %>
+<%
+  var etiquetaEstado = { pendiente: 'Por pagar', pagado: 'Pagado', enviado: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' };
+%>
+
+<main>
+  <div style="display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:0.6rem; margin-bottom:1.6rem;">
+    <h1 style="margin:0;">Mis pedidos</h1>
+    <% if (pedidos.length > 0) { %>
+      <span style="color:var(--tinta-suave); font-size:0.9rem;"><%= pedidos.length %> pedido<%= pedidos.length === 1 ? '' : 's' %></span>
+    <% } %>
+  </div>
+
+  <% if (pedidos.length === 0) { %>
+    <div class="carrito-vacio">
+      <p>Todavía no tienes pedidos.</p>
+      <button data-href="/productos">Ir al catálogo</button>
+    </div>
+  <% } else { %>
+    <div class="cuenta-lista">
+      <% pedidos.forEach(function(p) { %>
+        <div class="cuenta-fila">
+          <div class="cuenta-fila-principal">
+            <strong><%= p.numero_pedido %></strong>
+            <small><%= new Date(p.fecha_pedido).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }) %></small>
+          </div>
+          <span class="cuenta-estado cuenta-estado-<%= p.estado %>"><%= etiquetaEstado[p.estado] || p.estado %></span>
+          <span class="cuenta-fila-total">S/ <%= Number(p.total).toFixed(2) %></span>
+          <div class="cuenta-fila-acciones">
+            <% if (p.estado === 'pendiente') { %>
+              <button class="boton-chico" data-href="/pedidos/<%= p.id %>/pagar">Pagar</button>
+            <% } %>
+            <button type="button" class="boton-chico" data-href="/pedidos/<%= p.id %>">Ver detalle</button>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../layouts/footer') %>

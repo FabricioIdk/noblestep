@@ -1,0 +1,222 @@
+  <a href="https://wa.me/51937667857" target="_blank" rel="noopener" class="boton-whatsapp" title="Chatea con nosotros por WhatsApp" aria-label="Chatea con nosotros por WhatsApp">
+    <svg viewBox="0 0 32 32" width="30" height="30" fill="#fff">
+      <path d="M16.004 3C9.376 3 4 8.373 4 15c0 2.386.7 4.607 1.905 6.475L4 29l7.72-1.868A11.94 11.94 0 0 0 16.004 27C22.63 27 28 21.627 28 15S22.63 3 16.004 3zm0 21.818a9.78 9.78 0 0 1-4.987-1.363l-.358-.213-4.584 1.11 1.127-4.47-.234-.373A9.77 9.77 0 0 1 5.818 15c0-5.617 4.57-10.182 10.186-10.182 5.616 0 10.178 4.565 10.178 10.182 0 5.616-4.562 10.182-10.178 10.182zm5.578-7.632c-.305-.152-1.804-.89-2.084-.992-.28-.102-.484-.152-.688.153-.203.305-.79.99-.968 1.194-.178.204-.356.229-.66.076-.305-.152-1.288-.475-2.454-1.516-.907-.81-1.52-1.81-1.698-2.115-.178-.305-.019-.47.134-.622.137-.137.305-.356.457-.534.153-.178.203-.305.305-.508.102-.204.05-.382-.025-.534-.076-.153-.688-1.658-.943-2.27-.248-.596-.5-.516-.688-.525-.178-.009-.382-.011-.586-.011s-.534.076-.814.382c-.28.305-1.068 1.044-1.068 2.548 0 1.505 1.093 2.958 1.245 3.163.153.204 2.15 3.283 5.208 4.604.728.314 1.295.502 1.738.642.73.232 1.394.2 1.92.121.586-.087 1.804-.738 2.058-1.451.254-.712.254-1.323.178-1.451-.076-.128-.28-.203-.585-.356z"/>
+    </svg>
+  </a>
+
+  <footer class="pie">
+    <div class="pie-contenido">
+      <div class="pie-marca">
+        <img src="/img/home/noblestep-logo-N-blanco.png" alt="Noble Step">
+        <p>Calzado para cada paso.</p>
+      </div>
+      <div class="pie-columnas">
+        <div class="pie-columna">
+          <strong>Comprar</strong>
+          <a href="/productos?genero=hombre">Hombre</a>
+          <a href="/productos?genero=mujer">Mujer</a>
+          <a href="/productos?genero=nino">Niños</a>
+          <a href="/productos?oferta=1">Ofertas</a>
+        </div>
+        <div class="pie-columna">
+          <strong>Ayuda</strong>
+          <a href="/guia-tallas">Guía de tallas</a>
+          <a href="/pedidos">Mis pedidos</a>
+          <a href="/mi-cuenta">Mi cuenta</a>
+        </div>
+        <div class="pie-columna">
+          <strong>Contacto</strong>
+          <a href="https://wa.me/51937667857" target="_blank" rel="noopener">WhatsApp</a>
+          <span>Tarjeta · Yape · Plin</span>
+        </div>
+      </div>
+    </div>
+    <div class="pie-legal">&copy; <%= new Date().getFullYear() %> Noble Step S.A.C. Todos los derechos reservados.</div>
+  </footer>
+
+  <script src="/js/interacciones.js"></script>
+
+  <script nonce="<%= nonce %>">
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+    function alternarFavorito(evento, formulario) {
+      evento.preventDefault();
+
+      var boton = formulario.querySelector('button');
+       
+       
+      var datos = new URLSearchParams(new FormData(formulario));
+
+      fetch(formulario.action, {
+        method: 'POST',
+        body: datos,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      })
+        .then(function (respuesta) {
+          if (!respuesta.ok) throw new Error('fallo la peticion');
+          return respuesta.json();
+        })
+        .then(function (datosRespuesta) {
+          if (datosRespuesta.favorito) {
+            boton.classList.add('favorito-activo');
+          } else {
+            boton.classList.remove('favorito-activo');
+          }
+           
+           
+          boton.classList.add('favorito-latido');
+          setTimeout(function () { boton.classList.remove('favorito-latido'); }, 300);
+        })
+        .catch(function () {
+           
+           
+           
+          formulario.submit();
+        });
+
+      return false;  
+    }
+
+     
+     
+     
+     
+     
+     
+    function quitarDeFavoritos(evento, formulario) {
+      evento.preventDefault();
+      var tarjeta = formulario.closest('.tarjeta-producto');
+       
+       
+      var datos = new URLSearchParams(new FormData(formulario));
+
+      fetch(formulario.action, {
+        method: 'POST',
+        body: datos,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      })
+        .then(function (respuesta) {
+          if (!respuesta.ok) throw new Error('fallo la peticion');
+          return respuesta.json();
+        })
+        .then(function () {
+          if (!tarjeta) return;
+          tarjeta.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+          tarjeta.style.opacity = '0';
+          tarjeta.style.transform = 'scale(0.92)';
+          setTimeout(function () { tarjeta.remove(); }, 250);
+        })
+        .catch(function () {
+          formulario.submit();  
+        });
+
+      return false;
+    }
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+    function agregarAlCarrito(evento, formulario) {
+      evento.preventDefault();
+      var boton = document.getElementById('btnAgregar');
+      var textoOriginal = boton ? boton.textContent : '';
+       
+       
+      var datos = new URLSearchParams(new FormData(formulario));
+
+      fetch(formulario.action, { method: 'POST', body: datos })
+        .then(function (respuesta) {
+          if (!respuesta.ok) {
+             
+             
+             
+             
+             
+            return respuesta.text().then(function (html) {
+              document.open();
+              document.write(html);
+              document.close();
+            });
+          }
+          if (boton) {
+            boton.textContent = '✓ Añadido al carrito';
+            boton.classList.add('boton-confirmado');
+            setTimeout(function () {
+              boton.textContent = textoOriginal;
+              boton.classList.remove('boton-confirmado');
+            }, 1800);
+          }
+        })
+        .catch(function () {
+          formulario.submit();  
+        });
+
+      return false;
+    }
+
+     
+     
+     
+    document.addEventListener('submit', function (evento) {
+      var formulario = evento.target;
+      if (!formulario.hasAttribute) return;
+      if (formulario.hasAttribute('data-favorito')) {
+        alternarFavorito(evento, formulario);
+      } else if (formulario.hasAttribute('data-quitar-favorito')) {
+        quitarDeFavoritos(evento, formulario);
+      }
+    });
+  </script>
+
+  <script nonce="<%= nonce %>">
+     
+     
+     
+     
+    function alternarTema() {
+      var esOscuroAhora = document.documentElement.getAttribute('data-tema') === 'oscuro';
+      if (esOscuroAhora) {
+        document.documentElement.removeAttribute('data-tema');
+        localStorage.setItem('noblestep-tema', 'claro');
+      } else {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+        localStorage.setItem('noblestep-tema', 'oscuro');
+      }
+      actualizarIconoTema();
+    }
+
+    function actualizarIconoTema() {
+      var icono = document.getElementById('iconoTema');
+      var boton = document.getElementById('botonTema');
+      if (!icono) return;
+      var esOscuro = document.documentElement.getAttribute('data-tema') === 'oscuro';
+      icono.className = esOscuro ? 'fi fi-rr-sun' : 'fi fi-rr-moon';
+      if (boton) boton.title = esOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+    }
+
+     
+     
+     
+    actualizarIconoTema();
+
+    var botonTema = document.getElementById('botonTema');
+    if (botonTema) botonTema.addEventListener('click', alternarTema);
+  </script>
+</body>
+</html>

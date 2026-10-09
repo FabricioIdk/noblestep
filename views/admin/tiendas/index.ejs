@@ -1,0 +1,49 @@
+<%- include('../layouts/header') %>
+
+<main>
+<p><small>El "Almacén Central (Online)" se crea automáticamente y abastece las ventas por envío a domicilio. Las tiendas físicas se usan para el recojo en tienda.</small></p>
+
+  <% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <table border="1" cellpadding="8">
+    <thead>
+      <tr><th>Nombre</th><th>Tipo</th><th>Distrito</th><th>Teléfono</th><th>Activa</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% tiendas.forEach(function(t) { %>
+        <tr>
+          <td><%= t.nombre %></td>
+          <td><%= t.tipo === 'almacen_online' ? 'Almacén online' : 'Tienda física' %></td>
+          <td><%= t.distrito || '—' %></td>
+          <td><%= t.telefono || '—' %></td>
+          <td><span class="badge <%= t.activo ? 'badge-exito' : 'badge-gris' %>"><%= t.activo ? 'Sí' : 'No' %></span></td>
+          <td>
+            <% if (t.tipo === 'fisica') { %>
+              <form action="/admin/tiendas/<%= t.id %>/toggle" method="POST">
+                <button type="submit"><%= t.activo ? 'Desactivar' : 'Activar' %></button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2>Nueva tienda física</h2>
+  <form action="/admin/tiendas" method="POST">
+    <input type="text" name="nombre" placeholder="Nombre (ej. Noble Step - Jockey Plaza)" required><br><br>
+    <input type="text" name="direccion" placeholder="Dirección" style="width:300px;"><br><br>
+    <input type="text" name="distrito" placeholder="Distrito"><br><br>
+    <input type="text" name="ciudad" placeholder="Ciudad"><br><br>
+    <input type="text" name="telefono" placeholder="Teléfono"><br><br>
+    <button type="submit">Registrar tienda</button>
+  </form>
+
+  <br>
+  <button data-href="/admin/inventario">Ver inventario</button>
+  <button data-href="/admin">Volver al panel</button>
+</main>
+
+<%- include('../layouts/footer') %>

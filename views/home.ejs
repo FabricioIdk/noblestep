@@ -1,0 +1,133 @@
+<%- include('layouts/header') %>
+
+<div class="hero" id="hero">
+  <div class="hero-slide activo" style="background-image:url('/img/home/hero-1.jpg');">
+    <div class="hero-texto">
+      <span class="hero-etiqueta">Recién llegado</span>
+      <h1>Nueva colección<br>Urbano 2026</h1>
+      <button data-href="/productos">Comprar ahora</button>
+    </div>
+  </div>
+  <div class="hero-slide" style="background-image:url('/img/home/hero-2.jpg');">
+    <div class="hero-texto">
+      <span class="hero-etiqueta">Estilo de calle</span>
+      <h1>Camina con<br>identidad propia</h1>
+      <button data-href="/productos">Ver catálogo</button>
+    </div>
+  </div>
+  <div class="hero-dots">
+    <span class="hero-dot activo" data-slide="0"></span>
+    <span class="hero-dot" data-slide="1"></span>
+  </div>
+</div>
+
+<section class="inicio-contenedor inicio-seccion" aria-label="Categorías">
+  <h2 class="inicio-titulo inicio-titulo-seccion">Encuentra tu par</h2>
+  <div class="inicio-bento">
+    <a href="/productos?genero=hombre" class="inicio-tile inicio-tile-grande" style="background-image:url('/img/home/categoria-hombre.jpg');">
+      <span class="inicio-etiqueta">Más buscado</span>
+      <span class="inicio-titulo inicio-tile-nombre">Hombre</span>
+    </a>
+    <a href="/productos?genero=mujer" class="inicio-tile" style="background-image:url('/img/home/categoria-mujer.jpg');">
+      <span class="inicio-titulo inicio-tile-nombre">Mujer</span>
+    </a>
+    <a href="/productos?genero=nino" class="inicio-tile" style="background-image:url('/img/home/categoria-ninos.jpg');">
+      <span class="inicio-titulo inicio-tile-nombre">Niños</span>
+    </a>
+    <a href="/productos?oferta=1" class="inicio-tile inicio-tile-oferta">
+      <span>
+        <span class="inicio-etiqueta">Ofertas</span>
+        <span class="inicio-titulo inicio-tile-nombre"><%= descuentoMaximo > 0 ? 'Hasta ' + descuentoMaximo + '% menos' : 'Precios especiales' %></span>
+      </span>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+    </a>
+  </div>
+</section>
+
+<% if (recientes.length > 0) { %>
+  <section class="inicio-recientes" aria-label="Lo más nuevo">
+    <div class="inicio-contenedor">
+      <div class="inicio-cabecera-seccion">
+        <h2 class="inicio-titulo inicio-titulo-seccion">Recién llegados</h2>
+        <a href="/productos">Ver todo</a>
+      </div>
+      <div class="inicio-carrusel">
+        <% recientes.forEach(function(p) { %>
+          <a href="/productos/<%= p.id %>" class="inicio-producto">
+            <div class="inicio-producto-foto">
+              <% if (p.imagen) { %>
+                <img src="/img/productos/<%= p.imagen %>" alt="<%= p.nombre %>" loading="lazy">
+              <% } %>
+              <span class="inicio-insignia<%= p.enOferta ? ' inicio-insignia-oferta' : '' %>"><%= p.enOferta ? '-' + p.descuento + '%' : 'Nuevo' %></span>
+            </div>
+            <div class="inicio-producto-info">
+              <% if (p.marca) { %><div class="inicio-producto-marca"><%= p.marca %></div><% } %>
+              <div class="inicio-producto-nombre"><%= p.nombre %></div>
+              <div class="inicio-producto-precio">
+                <% if (p.enOferta) { %><span class="inicio-precio-antes">S/ <%= p.precio.toFixed(2) %></span><% } %>
+                S/ <%= p.precioFinal.toFixed(2) %>
+              </div>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+<% } %>
+
+<section class="inicio-contenedor inicio-seccion" aria-label="Cómo comprar">
+  <h2 class="inicio-titulo inicio-titulo-seccion">Comprar es fácil</h2>
+  <div class="inicio-pasos">
+    <div>
+      <div class="inicio-titulo inicio-paso-numero">01</div>
+      <div class="inicio-paso-titulo">Elige tu modelo y talla</div>
+      <p>Filtra por género, marca o precio y revisa la guía de tallas.</p>
+    </div>
+    <div>
+      <div class="inicio-titulo inicio-paso-numero">02</div>
+      <div class="inicio-paso-titulo">Paga como prefieras</div>
+      <p>Tarjeta, Yape o Plin, con tu cupón de descuento si tienes uno.</p>
+    </div>
+    <div>
+      <div class="inicio-titulo inicio-paso-numero">03</div>
+      <div class="inicio-paso-titulo">Recíbelas o recógelas</div>
+      <p>Envío a domicilio o recojo gratis en la tienda que elijas.</p>
+    </div>
+  </div>
+</section>
+
+<section class="inicio-contenedor inicio-seccion inicio-seccion-final" aria-label="Guía de tallas">
+  <div class="inicio-tallas">
+    <div>
+      <h2 class="inicio-titulo">¿No sabes qué talla elegir?</h2>
+      <p>Mira nuestra guía de tallas y compra con confianza.</p>
+    </div>
+    <a href="/guia-tallas" class="inicio-boton">Ver guía de tallas</a>
+  </div>
+</section>
+
+<script nonce="<%= nonce %>">
+  (function () {
+    const slides = document.querySelectorAll('#hero .hero-slide');
+    const dots = document.querySelectorAll('#hero .hero-dot');
+    let actual = 0;
+
+    function mostrarSlide(indice) {
+      slides.forEach(function (s, i) { s.classList.toggle('activo', i === indice); });
+      dots.forEach(function (d, i) { d.classList.toggle('activo', i === indice); });
+      actual = indice;
+    }
+
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        mostrarSlide(parseInt(dot.getAttribute('data-slide'), 10));
+      });
+    });
+
+    setInterval(function () {
+      mostrarSlide((actual + 1) % slides.length);
+    }, 5000);
+  })();
+</script>
+
+<%- include('layouts/footer') %>

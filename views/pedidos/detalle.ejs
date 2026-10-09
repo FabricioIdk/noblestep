@@ -1,0 +1,160 @@
+<%- include('../layouts/header') %>
+<%
+  var etiquetaEstado = { pendiente: 'Por pagar', pagado: 'Pagado', enviado: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' };
+  var etiquetaEnvio = { pendiente: 'Preparando tu pedido', en_camino: 'En camino', entregado: 'Entregado' };
+  var etiquetaMetodo = { tarjeta: 'Tarjeta', yape: 'Yape', plin: 'Plin', transferencia: 'Transferencia' };
+  var etiquetaPago = { aprobado: 'Aprobado', rechazado: 'Rechazado', pendiente: 'Pendiente' };
+  var ultimoPago = pedido.Pagos && pedido.Pagos.length > 0 ? pedido.Pagos[pedido.Pagos.length - 1] : null;
+  var costoEnvio = pedido.Envio ? Number(pedido.Envio.costo_envio) : 0;
+  var esRecojo = pedido.tipo_entrega === 'recojo_tienda';
+%>
+
+<main>
+  <div class="pedido-cabecera">
+    <div>
+      <a href="/pedidos" class="pedido-volver">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+        Mis pedidos
+      </a>
+      <h1>Pedido <%= pedido.numero_pedido %></h1>
+      <p class="pedido-fecha"><%= new Date(pedido.fecha_pedido).toLocaleString('es-PE', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
+    </div>
+    <span class="cuenta-estado cuenta-estado-<%= pedido.estado %>"><%= etiquetaEstado[pedido.estado] || pedido.estado %></span>
+  </div>
+
+  <% if (pedido.estado === 'cancelado') { %>
+    <div class="pedido-aviso pedido-aviso-alerta">
+      Este pedido fue cancelado. Si ya habías pagado, contáctanos para coordinar la devolución.
+    </div>
+  <% } else { %>
+    <%
+      var pasosEstado = ['pendiente', 'pagado', 'enviado', 'entregado'];
+      var pasoActual = pasosEstado.indexOf(pedido.estado);
+      var etiquetasPaso = { pendiente: 'Pedido recibido', pagado: 'Pago confirmado', enviado: 'En camino', entregado: 'Entregado' };
+    %>
+    <div class="linea-tiempo-pedido">
+      <% pasosEstado.forEach(function(paso, indice) { %>
+        <div class="paso-tiempo <%= indice <= pasoActual ? 'completado' : '' %> <%= indice === pasoActual + 1 ? 'actual' : '' %>">
+          <span class="paso-tiempo-circulo"><%= indice <= pasoActual ? '✓' : (indice + 1) %></span>
+          <span class="paso-tiempo-etiqueta"><%= etiquetasPaso[paso] %></span>
+        </div>
+        <% if (indice < pasosEstado.length - 1) { %><div class="paso-tiempo-linea <%= indice < pasoActual ? 'completado' : '' %>"></div><% } %>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <% if (pedido.estado === 'pendiente') { %>
+    <div class="pedido-aviso">
+      Tu pedido está reservado. Completa el pago para que empecemos a prepararlo.
+    </div>
+  <% } %>
+
+  <div class="carrito-layout">
+
+    <div>
+      <h3 style="margin-top:0;">Productos</h3>
+      <% lineas.forEach(function(l) { %>
+        <div class="carrito-item">
+          <div class="carrito-item-foto">
+            <% if (l.producto && l.producto.imagen_principal) { %>
+              <img src="/img/productos/<%= l.producto.imagen_principal %>" alt="<%= l.producto.nombre %>">
+            <% } else { %>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--tinta-mute)" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+            <% } %>
+          </div>
+          <div class="carrito-item-info">
+            <div class="carrito-item-cabecera">
+              <div>
+                <% if (l.producto && l.producto.marca) { %>
+                  <div class="carrito-item-marca"><%= l.producto.marca %></div>
+                <% } %>
+                <% if (l.producto) { %>
+                  <a href="/productos/<%= l.producto.id %>" class="carrito-item-nombre pedido-enlace-producto"><%= l.producto.nombre %></a>
+                <% } else { %>
+                  <div class="carrito-item-nombre">Producto no disponible</div>
+                <% } %>
+                <div class="carrito-item-variante">Talla <%= l.VarianteProducto.talla %> · <%= l.VarianteProducto.color %> · <%= l.cantidad %> unid.</div>
+              </div>
+              <div class="carrito-item-precio">
+                <div class="carrito-item-subtotal">S/ <%= Number(l.subtotal).toFixed(2) %></div>
+                <div class="carrito-item-unitario">S/ <%= Number(l.precio_unitario).toFixed(2) %> c/u</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+
+      <div class="pedido-info-grid">
+        <div class="bloque-formulario">
+          <p><%= esRecojo ? 'Recojo en tienda' : 'Envío a domicilio' %></p>
+          <% if (esRecojo && pedido.Tienda) { %>
+            <strong><%= pedido.Tienda.nombre %></strong>
+            <% if (pedido.Tienda.direccion || pedido.Tienda.distrito) { %>
+              <div class="pedido-info-detalle"><%= [pedido.Tienda.direccion, pedido.Tienda.distrito].filter(Boolean).join(', ') %></div>
+            <% } %>
+          <% } else if (pedido.Direccion) { %>
+            <strong><%= pedido.Direccion.calle %></strong>
+            <div class="pedido-info-detalle"><%= pedido.Direccion.distrito %>, <%= pedido.Direccion.ciudad %></div>
+            <% if (pedido.Direccion.referencia) { %><div class="pedido-info-detalle">Ref.: <%= pedido.Direccion.referencia %></div><% } %>
+          <% } %>
+          <% if (pedido.Envio && pedido.estado !== 'cancelado') { %>
+            <div class="pedido-info-separador"></div>
+            <div class="pedido-info-detalle"><strong><%= etiquetaEnvio[pedido.Envio.estado] || pedido.Envio.estado %></strong></div>
+            <% if (pedido.Envio.empresa_transporte) { %><div class="pedido-info-detalle">Transporte: <%= pedido.Envio.empresa_transporte %></div><% } %>
+            <% if (pedido.Envio.numero_seguimiento) { %><div class="pedido-info-detalle">N° de seguimiento: <%= pedido.Envio.numero_seguimiento %></div><% } %>
+            <% if (pedido.Envio.zona) { %><div class="pedido-info-detalle">Zona: <%= pedido.Envio.zona %></div><% } %>
+          <% } %>
+        </div>
+
+        <div class="bloque-formulario">
+          <p>Pago</p>
+          <% if (ultimoPago) { %>
+            <strong><%= etiquetaMetodo[ultimoPago.metodo_pago] || ultimoPago.metodo_pago %></strong>
+            <div class="pedido-info-detalle">Estado: <%= etiquetaPago[ultimoPago.estado_pago] || ultimoPago.estado_pago %></div>
+            <% if (ultimoPago.referencia_transaccion) { %>
+              <div class="pedido-info-detalle">Operación: <%= ultimoPago.referencia_transaccion %></div>
+            <% } %>
+          <% } else { %>
+            <strong>Pendiente de pago</strong>
+            <div class="pedido-info-detalle">Puedes pagar con tarjeta, Yape o Plin.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <aside class="carrito-resumen">
+      <h2>Resumen</h2>
+      <div class="carrito-resumen-fila">
+        <span style="color:var(--tinta-suave);">Subtotal</span>
+        <span style="font-weight:600;">S/ <%= Number(pedido.subtotal).toFixed(2) %></span>
+      </div>
+      <% if (pedido.Cupon) { %>
+        <div class="carrito-resumen-fila">
+          <span style="color:var(--tinta-suave);">Cupón</span>
+          <span style="font-weight:600; color:var(--exito);"><%= pedido.Cupon.codigo %></span>
+        </div>
+      <% } %>
+      <div class="carrito-resumen-fila">
+        <span style="color:var(--tinta-suave);">Envío</span>
+        <span style="font-weight:600;<%= costoEnvio === 0 ? ' color:var(--exito);' : '' %>"><%= costoEnvio === 0 ? 'Gratis' : 'S/ ' + costoEnvio.toFixed(2) %></span>
+      </div>
+      <div class="carrito-resumen-fila">
+        <span style="color:var(--tinta-suave);">IGV (18%)</span>
+        <span style="font-weight:600;">S/ <%= Number(pedido.igv).toFixed(2) %></span>
+      </div>
+
+      <div class="carrito-resumen-total">
+        <span style="font-weight:600;">Total</span>
+        <strong>S/ <%= Number(pedido.total).toFixed(2) %></strong>
+      </div>
+
+      <% if (pedido.estado === 'pendiente') { %>
+        <button data-href="/pedidos/<%= pedido.id %>/pagar" class="boton-pago">Pagar ahora</button>
+      <% } %>
+      <button type="button" data-href="/productos" class="pedido-boton-secundario">Seguir comprando</button>
+    </aside>
+
+  </div>
+</main>
+
+<%- include('../layouts/footer') %>
