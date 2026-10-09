@@ -1,0 +1,22 @@
+PRUEBAS DE CALIDAD DE NOBLE STEP (Capítulo V del TAP)
+
+Qué son: scripts de Node.js que prueban la plataforma en funcionamiento (envían las mismas
+solicitudes que el navegador y comprueban la respuesta y la base de datos).
+
+Antes de ejecutarlos
+1. Copia estos archivos a la carpeta raíz del proyecto (donde está app.js).
+2. Crea las tablas y arranca el servidor:  npm start
+3. Siembra el catálogo:  node seed_catalogo_completo.js
+4. Crea usuarios, tiendas, cupón y pedidos de ejemplo:  node 00_datos_de_ejemplo.js
+   (usuarios: admin@noblestep.pe y cliente@correo.com, contraseña Demo1234)
+   Ajusta los datos de conexión de los scripts si tu base de datos usa otro usuario o clave
+   (en los scripts figura usuario "ns", clave "ns123", base "noblestep").
+
+Ejecución (reinicia el servidor antes de cada uno, porque el sistema limita los intentos de acceso)
+  node 01_pruebas_unitarias.js
+  node 02_pruebas_integrales_seguridad_rendimiento.js
+  node 03_limite_de_intentos.js
+  04_compatibilidad_responsive.js necesita: npm install puppeteer   (y cambiar el navegador por el de puppeteer)
+
+Cada script imprime OK o FALLA por caso y guarda los resultados en archivos resultados_qa_*.json.
+Los resultados del TAP salieron de la ejecución de estos mismos scripts.
