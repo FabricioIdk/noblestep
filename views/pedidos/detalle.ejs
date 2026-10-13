@@ -2,7 +2,7 @@
 <%
   var etiquetaEstado = { pendiente: 'Por pagar', pagado: 'Pagado', enviado: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' };
   var etiquetaEnvio = { pendiente: 'Preparando tu pedido', en_camino: 'En camino', entregado: 'Entregado' };
-  var etiquetaMetodo = { tarjeta: 'Tarjeta', yape: 'Yape', plin: 'Plin', transferencia: 'Transferencia' };
+  var etiquetaMetodo = { tarjeta: 'Tarjeta', yape: 'Yape', plin: 'Plin', transferencia: 'Transferencia', mercadopago: 'Mercado Pago' };
   var etiquetaPago = { aprobado: 'Aprobado', rechazado: 'Rechazado', pendiente: 'Pendiente' };
   var ultimoPago = pedido.Pagos && pedido.Pagos.length > 0 ? pedido.Pagos[pedido.Pagos.length - 1] : null;
   var costoEnvio = pedido.Envio ? Number(pedido.Envio.costo_envio) : 0;
@@ -43,7 +43,11 @@
     </div>
   <% } %>
 
-  <% if (pedido.estado === 'pendiente') { %>
+  <% if (avisoPago === 'aprobado' && pedido.estado !== 'pendiente') { %>
+    <div class="pedido-aviso pedido-aviso-exito">¡Pago aprobado! Ya estamos preparando tu pedido.</div>
+  <% } else if (pedido.estado === 'pendiente' && (avisoPago === 'pendiente' || avisoPago === 'verificando')) { %>
+    <div class="pedido-aviso">Tu pago se está procesando. Te avisaremos en Notificaciones apenas Mercado Pago lo confirme.</div>
+  <% } else if (pedido.estado === 'pendiente') { %>
     <div class="pedido-aviso">
       Tu pedido está reservado. Completa el pago para que empecemos a prepararlo.
     </div>
@@ -116,7 +120,7 @@
             <% } %>
           <% } else { %>
             <strong>Pendiente de pago</strong>
-            <div class="pedido-info-detalle">Puedes pagar con tarjeta, Yape o Plin.</div>
+            <div class="pedido-info-detalle">Puedes pagar con tarjeta, Yape o saldo de Mercado Pago.</div>
           <% } %>
         </div>
       </div>

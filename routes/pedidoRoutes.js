@@ -10,7 +10,8 @@ router.use(requireAuth);
 
 router.get('/', pedidoController.misPedidos);               
 router.get('/:id', pedidoController.verPedido);              
-router.get('/:id/pagar', pagoController.mostrarFormulario);  
-router.post('/:id/pagar', pagoController.procesarPago);      
+router.get('/:id/pagar', pagoController.mostrarFormulario);
+router.post('/:id/pagar', pagoController.iniciarPago);
+router.get('/:id/pago/retorno', pagoController.retornoPago);
 
 module.exports = router;

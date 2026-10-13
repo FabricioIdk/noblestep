@@ -1,6 +1,7 @@
  
 
 const { Pedido, DetallePedido, VarianteProducto, Producto, Direccion, Pago, Cupon, Envio, Tienda } = require('../models');
+const { sincronizarPagos } = require('./pagoController');
 
 exports.misPedidos = async (req, res, next) => {
   try {
@@ -28,6 +29,8 @@ exports.verPedido = async (req, res, next) => {
       return res.status(404).render('404', { titulo: 'Pedido no encontrado' });
     }
 
+    const recienPagado = await sincronizarPagos(pedido);
+
     const lineas = await DetallePedido.findAll({
       where: { pedido_id: pedido.id },
       include: [{ model: VarianteProducto }],
@@ -36,7 +39,9 @@ exports.verPedido = async (req, res, next) => {
       linea.producto = await Producto.findByPk(linea.VarianteProducto.producto_id);
     }
 
-    res.render('pedidos/detalle', { titulo: `Pedido ${pedido.numero_pedido}`, pedido, lineas });
+    res.render('pedidos/detalle', {
+      titulo: `Pedido ${pedido.numero_pedido}`, pedido, lineas, avisoPago: recienPagado ? 'aprobado' : (req.query.pago || null),
+    });
   } catch (error) {
     next(error);
   }

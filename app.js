@@ -41,6 +41,7 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:'],
+        formAction: ["'self'", 'https://*.mercadopago.com.pe', 'https://*.mercadopago.com'],
         upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
       },
     },
@@ -54,6 +55,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.post('/webhooks/mercadopago', require('./controllers/pagoController').webhook);
 
 const sessionStore = new SequelizeStore({ db: sequelize, tableName: 'sesiones' });
 

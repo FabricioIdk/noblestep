@@ -20,80 +20,24 @@
     <form action="/pedidos/<%= pedido.id %>/pagar" method="POST" id="formPago">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-      <h3 style="margin-top:0;">Método de pago</h3>
-      <div class="metodos-pago">
-        <label class="opcion-entrega metodo-pago">
-          <input type="radio" name="metodo_pago" value="tarjeta" checked>
-          <span class="opcion-entrega-texto">
-            <strong>Tarjeta</strong>
-            <span>Crédito o débito</span>
-          </span>
-        </label>
-        <label class="opcion-entrega metodo-pago">
-          <input type="radio" name="metodo_pago" value="yape">
-          <span class="opcion-entrega-texto">
-            <strong>Yape</strong>
-            <span>Pago con celular</span>
-          </span>
-        </label>
-        <label class="opcion-entrega metodo-pago">
-          <input type="radio" name="metodo_pago" value="plin">
-          <span class="opcion-entrega-texto">
-            <strong>Plin</strong>
-            <span>Pago con celular</span>
-          </span>
-        </label>
+      <div class="bloque-formulario pago-mp">
+        <p>Pago seguro con Mercado Pago</p>
+        <ul class="pago-mp-medios">
+          <li><i class="fi fi-rr-credit-card"></i> Tarjetas de crédito y débito</li>
+          <li><i class="fi fi-rr-smartphone"></i> Yape</li>
+          <li><i class="fi fi-rr-wallet"></i> Saldo de Mercado Pago</li>
+        </ul>
+        <p class="nota-pago">Te llevaremos a la página segura de Mercado Pago para completar el pago. Al terminar, volverás automáticamente a tu pedido. Noble Step no ve ni guarda los datos de tu tarjeta.</p>
       </div>
 
-      <div class="bloque-formulario panel-pago" data-panel="tarjeta">
-        <p>Datos de la tarjeta</p>
-        <div class="campos-pago">
-          <label class="campo-pago campo-pago-completo">
-            <span>Número de tarjeta</span>
-            <span class="campo-pago-con-marca">
-              <input type="text" id="numeroTarjeta" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" pattern="[0-9 ]{19}" title="Ingresa los 16 dígitos de tu tarjeta" required>
-              <span class="marca-tarjeta" id="marcaTarjeta"></span>
-            </span>
-          </label>
-          <label class="campo-pago campo-pago-completo">
-            <span>Nombre del titular</span>
-            <input type="text" autocomplete="cc-name" placeholder="Como aparece en la tarjeta" maxlength="60" required>
-          </label>
-          <label class="campo-pago">
-            <span>Vencimiento</span>
-            <input type="text" id="vencimientoTarjeta" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA" maxlength="5" pattern="(0[1-9]|1[0-2])/[0-9]{2}" title="Usa el formato MM/AA" required>
-          </label>
-          <label class="campo-pago">
-            <span>CVV</span>
-            <input type="password" id="cvvTarjeta" inputmode="numeric" autocomplete="cc-csc" placeholder="•••" maxlength="4" pattern="[0-9]{3,4}" title="3 o 4 dígitos al reverso de tu tarjeta" required>
-          </label>
+      <% if (pagosDisponibles) { %>
+        <div class="acciones-pago">
+          <button type="submit" id="botonPagar">Pagar S/ <%= Number(pedido.total).toFixed(2) %></button>
+          <button type="button" data-href="/pedidos/<%= pedido.id %>">Cancelar</button>
         </div>
-      </div>
-
-      <div class="bloque-formulario panel-pago" data-panel="billetera" hidden>
-        <p id="tituloBilletera">Pagar con Yape</p>
-        <div class="campos-pago">
-          <label class="campo-pago">
-            <span>Número de celular</span>
-            <input type="text" class="solo-numeros" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXX" maxlength="9" pattern="9[0-9]{8}" title="Ingresa tu celular de 9 dígitos" required>
-          </label>
-          <label class="campo-pago">
-            <span>Código de aprobación</span>
-            <input type="text" class="solo-numeros" inputmode="numeric" placeholder="000000" maxlength="6" pattern="[0-9]{6}" title="Código de 6 dígitos" required>
-          </label>
-        </div>
-        <p class="nota-pago" id="notaBilletera">Encuentra el código de aprobación en el menú de tu app Yape.</p>
-      </div>
-
-      <p class="nota-pago nota-pago-segura">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
-        Pago seguro. Tus datos están protegidos.
-      </p>
-
-      <div class="acciones-pago">
-        <button type="submit" id="botonPagar">Pagar S/ <%= Number(pedido.total).toFixed(2) %></button>
-        <button type="button" data-href="/pedidos/<%= pedido.id %>">Cancelar</button>
-      </div>
+      <% } else { %>
+        <p class="pedido-aviso">Los pagos en línea no están disponibles en este momento. Escríbenos por <a href="https://wa.me/51937667857" target="_blank" rel="noopener">WhatsApp</a> para completar tu compra.</p>
+      <% } %>
     </form>
 
     <aside class="checkout-resumen">
@@ -119,73 +63,16 @@
   </div>
 </main>
 
-<script nonce="<%= nonce %>">
-  (function () {
-    var paneles = document.querySelectorAll('.panel-pago');
-    var titulo = document.getElementById('tituloBilletera');
-    var nota = document.getElementById('notaBilletera');
-    var textos = {
-      yape: { titulo: 'Pagar con Yape', nota: 'Encuentra el código de aprobación en el menú de tu app Yape.' },
-      plin: { titulo: 'Pagar con Plin', nota: 'Genera el código de aprobación desde la app de tu banco con Plin.' }
-    };
-
-    function mostrarPanel(metodo) {
-      var destino = metodo === 'tarjeta' ? 'tarjeta' : 'billetera';
-      paneles.forEach(function (panel) {
-        var activo = panel.getAttribute('data-panel') === destino;
-        panel.hidden = !activo;
-        panel.querySelectorAll('input').forEach(function (campo) { campo.disabled = !activo; });
-      });
-      if (textos[metodo]) {
-        titulo.textContent = textos[metodo].titulo;
-        nota.textContent = textos[metodo].nota;
-      }
-    }
-
-    document.querySelectorAll('input[name="metodo_pago"]').forEach(function (radio) {
-      radio.addEventListener('change', function () { mostrarPanel(radio.value); });
-    });
-    mostrarPanel(document.querySelector('input[name="metodo_pago"]:checked').value);
-
-    var numero = document.getElementById('numeroTarjeta');
-    var marca = document.getElementById('marcaTarjeta');
-    numero.addEventListener('input', function () {
-      var digitos = numero.value.replace(/\D/g, '').slice(0, 16);
-      numero.value = digitos.replace(/(\d{4})(?=\d)/g, '$1 ');
-      var nombreMarca = '';
-      if (/^4/.test(digitos)) nombreMarca = 'VISA';
-      else if (/^(5[1-5]|2[2-7])/.test(digitos)) nombreMarca = 'MASTERCARD';
-      else if (/^3[47]/.test(digitos)) nombreMarca = 'AMEX';
-      else if (/^3[0689]/.test(digitos)) nombreMarca = 'DINERS';
-      marca.textContent = nombreMarca;
-    });
-
-    var vencimiento = document.getElementById('vencimientoTarjeta');
-    vencimiento.addEventListener('input', function () {
-      var digitos = vencimiento.value.replace(/\D/g, '').slice(0, 4);
-      vencimiento.value = digitos.length > 2 ? digitos.slice(0, 2) + '/' + digitos.slice(2) : digitos;
-      var mensaje = '';
-      if (/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.value)) {
-        var hoy = new Date();
-        var mes = parseInt(digitos.slice(0, 2), 10);
-        var anio = 2000 + parseInt(digitos.slice(2), 10);
-        if (anio < hoy.getFullYear() || (anio === hoy.getFullYear() && mes < hoy.getMonth() + 1)) {
-          mensaje = 'La tarjeta está vencida.';
-        }
-      }
-      vencimiento.setCustomValidity(mensaje);
-    });
-
-    document.querySelectorAll('#cvvTarjeta, .solo-numeros').forEach(function (campo) {
-      campo.addEventListener('input', function () { campo.value = campo.value.replace(/\D/g, ''); });
-    });
-
+<% if (pagosDisponibles) { %>
+  <script nonce="<%= nonce %>">
     document.getElementById('formPago').addEventListener('submit', function () {
       var boton = document.getElementById('botonPagar');
-      boton.disabled = true;
-      boton.textContent = 'Procesando pago...';
+      setTimeout(function () {
+        boton.disabled = true;
+        boton.textContent = 'Conectando con Mercado Pago...';
+      }, 0);
     });
-  })();
-</script>
+  </script>
+<% } %>
 
 <%- include('../layouts/footer') %>

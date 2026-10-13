@@ -151,7 +151,7 @@
     for (var i = 0; i < valores.length; i++) { ctx.lineTo(coordX(i), coordY(valores[i])); }
     ctx.lineTo(coordX(valores.length - 1), coordY(0));
     ctx.closePath();
-    ctx.fillStyle = 'rgba(255, 90, 31, 0.12)';
+    ctx.fillStyle = 'rgba(242, 179, 139, 0.32)';
     ctx.fill();
 
      
@@ -160,13 +160,13 @@
       var x = coordX(j), y2 = coordY(valores[j]);
       if (j === 0) ctx.moveTo(x, y2); else ctx.lineTo(x, y2);
     }
-    ctx.strokeStyle = '#ff5a1f';
+    ctx.strokeStyle = '#3d1e3a';
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
      
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ff5a1f';
+    ctx.fillStyle = '#3d1e3a';
     for (var k = 0; k < valores.length; k++) {
       var px = coordX(k), py = coordY(valores[k]);
       ctx.beginPath();
@@ -174,7 +174,7 @@
       ctx.fill();
       ctx.fillStyle = '#666';
       ctx.fillText(etiquetas[k], px, alto - 8);
-      ctx.fillStyle = '#ff5a1f';
+      ctx.fillStyle = '#3d1e3a';
     }
   })();
 </script>
